@@ -1,6 +1,6 @@
 
 import mesa
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 import numpy as np
 import random
 
@@ -12,12 +12,23 @@ class FoodAgent(mesa.Agent):
 
     def __init__(self, unique_id, model):
         super().__init__(unique_id, model)
-        self.position = (0, 0)
-        self.enery_value = 2  # called Er in paper
+        self.position = (0,0)
+        self.energy_value = 2  # called Er in paper
         self.regrowth = None  # random timepoint in a year where they regrow
 
-    def set_position(self, width, height):
-        self.position = (width, height)
+    def set_position(self, pos):
+        self.position = pos
+
+
+class PredatorAgent(mesa.Agent):
+    """An agent that is a predator"""
+
+    def __init__(self, unique_id, model):
+        super().__init__(unique_id, model)
+        # non-evolvable parameters
+        self.position(0,0)
+        # evolvable parameters
+        # TODO Predator incomplete
 
 
 class PreyAgent(mesa.Agent):
@@ -28,7 +39,7 @@ class PreyAgent(mesa.Agent):
         # non-evolvable parameters
         self.age = 0
         self.energy = 100000  # TODO what energy level do they start with?
-        self.position = (0, 0)  # TODO make this randomised
+        self.position = (0,0)  # TODO make this randomised
         self.df = 2  # search radius of forager, TODO find initial value
         self.af = 270  # search angle, angle between food and forward direction
         self.tf = 3  # foodscan duration, TODO find initial value
@@ -65,9 +76,9 @@ class PreyAgent(mesa.Agent):
             self.is_safe = False
 
         # Reproduction
-        if self.model.num_prey_agents > 10 and self.energy >= self.eM:
+        if self.model.num_prey_agents > 10 and self.energy >= self.max_energy:
             self.energy = self.energy - self.max_energy / 2
-            a = PreyAgent(self.num_prey_agents + 1, self)
+            a = PreyAgent(self.num_prey_agents + 1, self.model)
             self.num_prey_agents = self.num_prey_agents + 1
             a.set_energy(self.max_energy / 2)
             # TODO offspring inherit all evolvable parameters + mutate, maybe make functions inherit() and evolve()
@@ -104,14 +115,19 @@ class PreyAgent(mesa.Agent):
 
         return chosenitem
 
-    def move_to_food(self):
-        ...
+    def move_to_food(self, food_item):
+        self.position = food_item.position - (self.dr * abs(food_item.position - self.position))/2
+        # TODO duration is distance moved * tM
 
-    def eat(self):
-        ...
+    def eat(self, food_item):
+        # resource items that are eaten disappear immediately (no half eating possible)
+        model.remove_agents_food.append(food_item)
+        food_item.remove_agent() # This should remove the agent from the grid, immediately to prevent it being eaten twice
+
 
     def scan(self):
-        ...
+        for predator in range(len(self.model.predators)):
+
 
     def flee(self):
         ...
@@ -128,17 +144,23 @@ class Model(mesa.Model):
     def __init__(self, N, width, height):
         super().__init__()  # this fixes the problem
         self.num_prey_agents = N
+        self.num_predator_agents = 2
         self.num_resources = width * height * 0.535  # probability found in paper
         self.grid = mesa.space.MultiGrid(width, height, True)
         self.schedule = RandomActivation(self)
         self.fooditems = []
+        self.predators = []
+        self.remove_agents_prey = []
+        self.remove_agents_predator = []
+        self.remove_agents_food = []
 
         # Place food items
         for resource in range(int(self.num_resources)):
             a = FoodAgent(resource, self)
             cell = mesa.space.Grid.find_empty(self.grid)
+            print(cell)
             mesa.space.Grid.place_agent(self.grid, a, cell)
-            # TODO change position field of food item to the position of cell
+            a.set_position(cell)
 
         # Create prey agents
         for i in range(self.num_prey_agents):
@@ -150,10 +172,32 @@ class Model(mesa.Model):
             y = self.random.randrange(self.grid.height)
             self.grid.place_agent(a, (x, y))
 
+        # Create predator agents
+        for i in range(self.num_predator_agents):
+            a = PredatorAgent(i, self)
+            self.schedule.add(a)
+
+            # Add the agent to a random grid cell
+            x = self.random.randrange(self.grid.width)
+            y = self.random.randrange(self.grid.height)
+            self.grid.place_agent(a, (x, y))
+
     def step(self):
         """Advance the model by one step."""
         self.schedule.step()  # model shuffles the order of the agents, then activates and executes each agent’s step method
-
+        # remove dead predators and prey, and eaten food
+        for x in self.remove_agents_food:
+            self.grid.remove_agent(x)
+            self.schedule.remove(x)
+            self.remove_agents_food.remove(x)
+        for x in self.remove_agents_prey:
+            self.grid.remove_agent(x)
+            self.schedule.remove(x)
+            self.remove_agents_prey.remove(x)
+        for x in self.remove_agents_predator:
+            self.grid.remove_agent(x)
+            self.schedule.remove(x)
+            self.remove_agents_predator.remove(x)
 
 # %%
 
