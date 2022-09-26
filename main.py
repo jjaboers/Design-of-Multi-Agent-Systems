@@ -17,3 +17,18 @@ for cell in model.grid.coord_iter():
     agent_counts[x][y] = agent_count
 plt.imshow(agent_counts, interpolation="nearest")
 plt.colorbar()
+
+# NOTE from tutorial:
+# if __name__ == '__main__':
+
+#     agents_per_process = 3
+#     c = 0
+#     agents = list()
+#     for i in range(agents_per_process):
+#         port = int(argv[1]) + c
+#         agent_name = 'agente_hello_{}@localhost:{}'.format(port, port)
+#         agente_hello = AgenteHelloWorld(AID(name=agent_name))
+#         agents.append(agente_hello)
+#         c += 1000
+
+#     start_loop(agents)
