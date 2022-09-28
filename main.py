@@ -17,7 +17,7 @@ for cell in model.grid.coord_iter():
     agent_counts[x][y] = agent_count
 plt.imshow(agent_counts, interpolation="nearest")
 plt.colorbar()
-
+plt.show()
 # NOTE from tutorial:
 # if __name__ == '__main__':
 
