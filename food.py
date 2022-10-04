@@ -1,3 +1,6 @@
+import mesa
+
+
 class FoodAgent(mesa.Agent):
     """ Agent representing the resource items """
 

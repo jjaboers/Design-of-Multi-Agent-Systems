@@ -1,3 +1,7 @@
+import mesa
+import numpy as np
+import random
+
 class PreyAgent(mesa.Agent):
     """An agent that is a prey, as described in the paper."""
 

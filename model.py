@@ -1,3 +1,4 @@
+import mesa
 from mesa.time import RandomActivation
 from predator import PredatorAgent
 from prey import PreyAgent
@@ -39,7 +40,7 @@ class Model(mesa.Model):
             self.grid.place_agent(a, (x, y))
 
         # Create predator agents
-        for i in range(self.num_predator_agents):
+        for i in range(self.num_prey_agents+1, self.num_predator_agents+1):
             a = PredatorAgent(i, self)
             self.schedule.add(a)
 

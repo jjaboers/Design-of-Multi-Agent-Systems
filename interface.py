@@ -3,7 +3,7 @@ The full code should now look like:
 """
 # from MoneyModel import *
 import mesa
-
+from model import Model
 
 def agent_portrayal(agent):
     portrayal = {
@@ -18,7 +18,7 @@ def agent_portrayal(agent):
 
 grid = mesa.visualization.CanvasGrid(agent_portrayal, 10, 10, 500, 500)
 server = mesa.visualization.ModularServer(
-    MoneyModel, [grid], "Money Model", {"N": 100, "width": 10, "height": 10}
+    Model, [grid], "Prey-Predator Model", {"N": 100, "width": 10, "height": 10}
 )
 server.port = 8521  # The default
 server.launch()
