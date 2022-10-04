@@ -1,7 +1,7 @@
 # interface variables
-UI_WIDTH = 100
-UI_HEIGHT = 100
-N_AGENTS = 30
+UI_WIDTH = 40
+UI_HEIGHT = 40
+N_AGENTS = 10
 MAX_STEPS = 1000
 
 # model parameters

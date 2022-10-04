@@ -10,10 +10,21 @@ def agent_portrayal(agent):
     portrayal = {
         "Shape": "circle",
         "Filled": "true",
-        "Layer": 0,
-        "Color": "red",
         "r": 0.5,
     }
+    if agent.type == "prey":
+        portrayal["Color"] = "grey"
+        print("prey")
+        portrayal["Layer"] = 1
+    elif agent.type == "food":
+        portrayal["Color"] = "green"
+        print("food")
+        portrayal["Layer"] = 0
+    elif agent.type == "predator":
+        portrayal["Color"] = "red"
+        print("predator")
+        portrayal["Layer"] = 2
+
     return portrayal
 
 

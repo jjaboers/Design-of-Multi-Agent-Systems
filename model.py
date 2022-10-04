@@ -48,25 +48,31 @@ class Model(mesa.Model):
     def create_prey(self, num_prey_agents):
         # Create prey agents
         for i in range(num_prey_agents):
+            print("create prey")
             a = PreyAgent(i, self)
             self.schedule.add(a)
 
             # Add the agent to a random grid cell
-            x = self.random.randrange(self.grid.width)
-            y = self.random.randrange(self.grid.height)
-            self.grid.place_agent(a, (x, y))
+            cell = mesa.space.Grid.find_empty(self.grid)
+            # self.grid.place_agent(a, (x, y))
+            mesa.space.Grid.place_agent(self.grid, a, cell)
+            a.set_position(cell)
             self.num_prey_agents += 1
 
     def create_predators(self, num_predator_agents):
         # Create predator agents
-        for i in range(self.num_prey_agents, num_predator_agents):
+        for i in range(self.num_prey_agents+1, self.num_prey_agents + num_predator_agents):
+            print("create predator")
             a = PredatorAgent(i, self)
             self.schedule.add(a)
 
             # Add the agent to a random grid cell
-            x = self.random.randrange(self.grid.width)
-            y = self.random.randrange(self.grid.height)
-            self.grid.place_agent(a, (x, y))
+            # x = self.random.randrange(self.grid.width)
+            # y = self.random.randrange(self.grid.height)
+            cell = mesa.space.Grid.find_empty(self.grid)
+            # self.grid.place_agent(a, (x, y))
+            mesa.space.Grid.place_agent(self.grid, a, cell)
+            a.set_position(cell)
             self.num_predator_agents += 1
 
     def create_food(self, num_resources):

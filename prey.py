@@ -6,6 +6,7 @@ import setup
 class PreyAgent(mesa.Agent):
     """An agent that is a prey, as described in the paper."""
     # non-evolvable parameters
+    type = "prey"
     age = 0
     energy = 100000  # TODO what energy level do they start with?
     position = (random.randrange(setup.UI_WIDTH), random.randrange(setup.UI_HEIGHT))
@@ -112,6 +113,8 @@ class PreyAgent(mesa.Agent):
         #     # TODO offspring inherit all evolvable parameters + mutate, maybe make functions inherit() and evolve()
         # if self.model.num_prey_agents < 10:
         #     pass
+    def set_position(self, pos):
+        self.position = pos
 
     def set_energy(self, new_energy):
         self.energy = new_energy
