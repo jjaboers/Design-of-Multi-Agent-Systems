@@ -2,10 +2,11 @@ import mesa
 import matplotlib.pyplot as plt
 import numpy as np
 import random
+import setup
 
 from model import Model
 
-model = Model(50, 10, 10)
+model = Model(setup.N_AGENTS, setup.UI_WIDTH, setup.UI_HEIGHT)
 for i in range(20):
     model.step()
 
