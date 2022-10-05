@@ -1,8 +1,20 @@
 import mesa
+from enum import Enum
 import numpy as np
 import random
 import setup
 from scipy.stats import truncnorm
+
+class Prey_State(Enum):
+    NOTHING = 1
+    MOVING = 2
+    FOODSCAN = 3
+    MOVETOFOOD = 4
+    EATING = 5
+    SCANING = 6
+    FLEEING = 7
+    DEAD = 8
+
 
 class PreyAgent(mesa.Agent):
     """An agent that is a prey, as described in the paper."""
@@ -26,12 +38,17 @@ class PreyAgent(mesa.Agent):
     mutation_rate = 0.05
     is_safe = False
     waiting_time = 0  # TODO find initial value
+    reaction_time = 1
+    er = 2  # energy gained per food item TODO should this be in model?
     def __init__(self, unique_id, model):
         super().__init__(unique_id, model)
         print("INSIDE")
         print(getattr(self.model, 'num_prey_agents'))
         # evolvable parameters
         self.model = model
+        self.state = Prey_State.NOTHING
+        self.previous_state = Prey_State.NOTHING
+        self.current_action_time_remaining = 0
         # descision making
         self.pv = 0  # predator scan, between 0 and 1, sd = 0.2
         self.pm = 0  # move after move, between 0 and 1, sd = 0.2
@@ -104,11 +121,71 @@ class PreyAgent(mesa.Agent):
             self.waiting_time = self.waiting_time - 1
         if self.waiting_time == 0:
             self.is_safe = False
+
+        # Check if current action is over
+        if self.current_action_time_remaining == 0:
+            self.previous_state = self.state
+            self.state = Prey_State.NOTHING
+        else: # count down time remaining in action by 1
+            self.current_action_time_remaining -= 1
+
+        # if there is a predator or the neighbor flees, flee
+        # takes precedence over everything, cutting short the current action
+        # TODO Implement below if statement, not sure what condition is supposed to be yet
+        # if something:
+        #    self.state = Prey_State.FLEEING
+        #    self.flee()
+
+        # complete current action
+        if self.state == Prey_State.DEAD:
+            return
+        elif self.state == Prey_State.MOVING:
+            self.move()
+        elif self.state == Prey_State.FOODSCAN:
+            self.food_target = self.foodscan()
+        elif self.state == Prey_State.MOVETOFOOD:
+            self.move_to_food()
+        elif self.state == Prey_State.EATING:
+            self.energy += self.er
+            self.food_target = None
+        elif self.state == Prey_State.SCANING:
+            self.scan()
+        elif self.state == Prey_State.FLEEING and (self.is_safe is False):
+            self.flee()
+        # if current action complete or NONE, choose new action
+        elif self.state == Prey_State.NOTHING:
+            RAND = random.random()
+            if RAND < self.pv or self.is_safe is True:
+                self.state = Prey_State.SCANING
+            else:
+                if self.food_target is not None:
+                    if self.distance(self.food_target) < self.dr:
+                        self.state = Prey_State.EATING
+                    else:
+                        self.state = Prey_State.MOVETOFOOD
+                else:
+                    if self.previous_state == Prey_State.MOVING:
+                        if RAND < self.pm:
+                            self.state = Prey_State.MOVING
+                        else:
+                            self.state = Prey_State.FOODSCAN
+                    elif self.previous_state == Prey_State.EATING:
+                        if RAND < self.pse:
+                            self.state = Prey_State.FOODSCAN
+                        else:
+                            self.state = Prey_State.MOVING
+                    elif self.previous_state == Prey_State.MOVING:
+                        if RAND < self.pse:
+                            self.state = Prey_State.FOODSCAN
+                        else:
+                            self.state = Prey_State.MOVING
+
     # TODO choose random parent, force birth with no energy cost
 
     # PREY ACTIONS
 
     def move(self):
+        # TODO add the grouping stuff to this, see sec 1.7.2 in sub paper)
         possible_steps = self.model.grid.get_neighborhood(
             self.pos,
             moore=True,
@@ -154,7 +231,7 @@ class PreyAgent(mesa.Agent):
     def flee(self):
         # No change in spatial position, safety is simply assumed
         self.is_safe = True
-        # TODO duration = reactiontime (1 second)
+        self.current_action_time_remaining = self.reaction_time
 
     def reproduce(self):
         # Reproduction
