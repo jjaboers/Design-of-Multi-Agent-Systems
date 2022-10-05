@@ -81,6 +81,7 @@ class PredatorAgent(mesa.Agent):
         # constants-------------------------------------------------------------
 
         # internal state--------------------------------------------------------
+        # TODO random position
         self.position = params["position"]
         self.energy = params["initial_energy"]
         # internal state--------------------------------------------------------
@@ -147,7 +148,7 @@ class PredatorAgent(mesa.Agent):
     def set_position(self, pos):
         self.position = pos
     
-    # random movement with
+    # random movement with scanning inbetween
     def search(self):
         if self.t_current_activity >= self.search_duration:
             self.set_state(Predator_State.SCANNING)
@@ -160,16 +161,26 @@ class PredatorAgent(mesa.Agent):
         new_position = self.random.choice(possible_steps)
         self.move(new_position)
         
-
+    # with current fleeing system more like charge
     def chase(self):
         pass
+        # TODO maybe add stamina (evolvable)
+        # if target.is_safe() -> search
+        # if dist(target, self) < threshold or in same cell
+        #   -> eat agent
     
     def scan(self):
         pass
+        # if prey detected -> set_target -> chase
+        # if no prey -> search
 
     def eat(self):
         pass
-
+        # gain energy from prey
+        # set prey state on dead
+        # set_state(search)
+    
+    # TODO implement repulsion etc
     def move(self, new_position):
         self.model.grid.move_agent(self, new_position)
         self.set_position(new_position)
