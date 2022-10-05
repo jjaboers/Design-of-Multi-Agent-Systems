@@ -9,11 +9,8 @@ class PreyAgent(mesa.Agent):
     # non-evolvable parameters
     type = "prey"
     age = 0
-    energy = 100000  # TODO what energy level do they start with?
+    energy = 100000
     position = (random.randrange(setup.UI_WIDTH), random.randrange(setup.UI_HEIGHT))
-    df = 2  # search radius of forager, TODO find initial value
-    af = 270  # search angle, angle between food and forward direction
-    tf = 3  # foodscan duration, TODO find initial value
     food_target = None
     zl = 50  # alignment zone
     dr = 0.9  # individual reach
@@ -35,14 +32,35 @@ class PreyAgent(mesa.Agent):
         print(getattr(self.model, 'num_prey_agents'))
         # evolvable parameters
         self.model = model
-        self.zr = 20  # repulsion zone, affected by evolution
-        self.za = 30  # attractrion zone, affected by evoluiton
-        self.aa = 72  # maximum turning angle for attraction
-        self.ar = 72  # maximum turning angle for repulsion
+        # descision making
+        self.pv = 0  # predator scan, between 0 and 1, sd = 0.2
+        self.pm = 0  # move after move, between 0 and 1, sd = 0.2
+        self.pse = 0  # food scan after eat, between 0 and 1, sd = 0.2
+        self.psn = 0  # food scan after no food, between 0 and 1, sd = 0.2
+        self.pmtf = 0  # move to food, between 0 and 1, sd = 0.2
+        # vigilance
+        self.tv = 0  # scan duration, between 0.167 and 1.99, sd = 0.4
+        self.av = 0  # scan angle, between 0 and 360, sd = 72
+        # fleeing
+        self.tp = 0  # flee duration, minimum 0, sd = 5
+        # grouping
+        self.zr = 20  # repulsion zone, between 0 and 50, sd = 10
+        self.za = 30  # attractrion zone, between zr and 50, sd = 10
+        self.aa = 72  # maximum turning angle for attraction, between 0 and 360, sd = 72
+        self.ar = 72  # maximum turning angle for repulsion, between 0 and 360, sd = 72
+        self.nr = 0  # tolerated neighbors, (0 or 1)
+        # movement
+        self.tm = 0  # move duration, between 0.167 and 1.99, sd = 0.4
+        self.dm = 0  # move distance, minimum 0, sd = 3
+        self.am = 0  # move angle, between 0 and 360, sd = 72
+        # foraging
+        self.df = 2  # search radius of forager
+        self.af = 270  # search angle, angle between food and forward direction
+        self.tf = 3  # foodscan duration
 
     # Function returns a random value for attraction/repulsion zone or angle of attraction/repulsion
     # Uses truncated normal distribution, takes range [lower, upper] and standard deviation (sd)
-    def generate_initial_zone_angle(self, lower, upper, sd):
+    def trunc_normal(self, lower, upper, sd):
         mu = upper - lower
 
         r = truncnorm.rvs(
@@ -64,14 +82,15 @@ class PreyAgent(mesa.Agent):
         self.aa = attraction
 
     # sets the initial values of evolvable parameters of the prey agent
+    # TODO set all the parameters, currently only grouping is done
     def set_initial_evolvable_parameters(self):
-        zr = self.generate_initial_zone_angle(0, 50, 10)  # random value between 0 and 50, sd = 10
+        zr = self.trunc_normal(0, 50, 10)  # random value between 0 and 50, sd = 10
         self.set_repulsion_zone(zr)
-        za = self.generate_initial_zone_angle(zr, 50, 10)  # random value between self.zr and 50, sd = 10
+        za = self.trunc_normal(zr, 50, 10)  # random value between self.zr and 50, sd = 10
         self.set_attraction_zone(za)
-        aa = self.generate_initial_zone_angle(0, 360, 72)  # random value between 0 and 360, sd = 72
+        aa = self.trunc_normal(0, 360, 72)  # random value between 0 and 360, sd = 72
         self.set_attraction_angle(aa)
-        ar = self.generate_initial_zone_angle(0, 360, 72)  # random value between 0 and 360, sd = 72
+        ar = self.trunc_normal(0, 360, 72)  # random value between 0 and 360, sd = 72
         self.set_repulsion_angle(ar)
 
     # STEP FUNCTION
