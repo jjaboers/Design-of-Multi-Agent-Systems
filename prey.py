@@ -2,6 +2,7 @@ import mesa
 import numpy as np
 import random
 import setup
+from scipy.stats import truncnorm
 
 class PreyAgent(mesa.Agent):
     """An agent that is a prey, as described in the paper."""
@@ -34,10 +35,46 @@ class PreyAgent(mesa.Agent):
         print(getattr(self.model, 'num_prey_agents'))
         # evolvable parameters
         self.model = model
-        self.zr = 20  # repulsion zone, affected by evolution, TODO set it to random value between 0 and 50, sd = 10
-        self.za = 30  # attractrion zone, affected by evoluiton, TODO set it to random value between self.zr and 50, sd = 10
-        self.aa = 72  # maximum turning angle for attraction TODO set between 0 and 360, sd = 72
-        self.ar = 72  # maximum turning angle for repulsion TODO set between 0 and 360, sd = 72
+        self.zr = 20  # repulsion zone, affected by evolution
+        self.za = 30  # attractrion zone, affected by evoluiton
+        self.aa = 72  # maximum turning angle for attraction
+        self.ar = 72  # maximum turning angle for repulsion
+
+    # Function returns a random value for attraction/repulsion zone or angle of attraction/repulsion
+    # Uses truncated normal distribution, takes range [lower, upper] and standard deviation (sd)
+    def generate_initial_zone_angle(self, lower, upper, sd):
+        mu = upper - lower
+
+        r = truncnorm.rvs(
+            (lower - mu) / sd, (upper - mu) / sd, loc=mu, scale=sd, size=1)
+        return r
+
+    # SET EVOLVABLE PARAMS
+
+    def set_repulsion_zone(self, repulsion):
+        self.zr = repulsion
+
+    def set_attraction_zone(self, attraction):
+        self.za = attraction
+
+    def set_repulsion_angle(self, repulsion):
+        self.ar = repulsion
+
+    def set_attraction_angle(self, attraction):
+        self.aa = attraction
+
+    # sets the initial values of evolvable parameters of the prey agent
+    def set_initial_evolvable_parameters(self):
+        zr = self.generate_initial_zone_angle(0, 50, 10)  # random value between 0 and 50, sd = 10
+        self.set_repulsion_zone(zr)
+        za = self.generate_initial_zone_angle(zr, 50, 10)  # random value between self.zr and 50, sd = 10
+        self.set_attraction_zone(za)
+        aa = self.generate_initial_zone_angle(0, 360, 72)  # random value between 0 and 360, sd = 72
+        self.set_attraction_angle(aa)
+        ar = self.generate_initial_zone_angle(0, 360, 72)  # random value between 0 and 360, sd = 72
+        self.set_repulsion_angle(ar)
+
+    # STEP FUNCTION
 
     def step(self):
         self.age = self.age + 1
@@ -48,9 +85,9 @@ class PreyAgent(mesa.Agent):
             self.waiting_time = self.waiting_time - 1
         if self.waiting_time == 0:
             self.is_safe = False
-
-
     # TODO choose random parent, force birth with no energy cost
+
+    # PREY ACTIONS
 
     def move(self):
         possible_steps = self.model.grid.get_neighborhood(
@@ -96,9 +133,10 @@ class PreyAgent(mesa.Agent):
             pass
 
     def flee(self):
-        pass
         # No change in spatial position, safety is simply assumed
+        self.is_safe = True
         # TODO duration = reactiontime (1 second)
+
     def reproduce(self):
         # Reproduction
         neighbours = self.model.grid.get_neighbors(self.position, include_center=True)
@@ -113,6 +151,9 @@ class PreyAgent(mesa.Agent):
         #     # TODO offspring inherit all evolvable parameters + mutate, maybe make functions inherit() and evolve()
         # if self.model.num_prey_agents < 10:
         #     pass
+
+    # SET NON-EVOLVABLE PARAMS
+
     def set_position(self, pos):
         self.position = pos
 
