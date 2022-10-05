@@ -1,7 +1,10 @@
+import math
+
 import mesa
 from enum import Enum
 import numpy as np
 import random
+from scipy import spatial
 import setup
 from scipy.stats import truncnorm
 
@@ -40,6 +43,7 @@ class PreyAgent(mesa.Agent):
     waiting_time = 0  # TODO find initial value
     reaction_time = 1
     er = 2  # energy gained per food item TODO should this be in model?
+    t_min = 10
     def __init__(self, unique_id, model):
         super().__init__(unique_id, model)
         print("INSIDE")
@@ -49,6 +53,7 @@ class PreyAgent(mesa.Agent):
         self.state = Prey_State.NOTHING
         self.previous_state = Prey_State.NOTHING
         self.current_action_time_remaining = 0
+        self.detected_predator = None
         # descision making
         self.pv = 0  # predator scan, between 0 and 1, sd = 0.2
         self.pm = 0  # move after move, between 0 and 1, sd = 0.2
@@ -129,10 +134,9 @@ class PreyAgent(mesa.Agent):
         else: # count down time remaining in action by 1
             self.current_action_time_remaining -= 1
 
-        # if there is a predator or the neighbor flees, flee
-        # takes precedence over everything, cutting short the current action
+        # flee takes precedence over everything, cutting short the current action
         # TODO Implement below if statement, not sure what condition is supposed to be yet
-        # if something:
+        # if there is a predator or the neighbor flees:
         #    self.state = Prey_State.FLEEING
         #    self.flee()
 
@@ -144,11 +148,12 @@ class PreyAgent(mesa.Agent):
         elif self.state == Prey_State.FOODSCAN:
             self.food_target = self.foodscan()
         elif self.state == Prey_State.MOVETOFOOD:
-            self.move_to_food()
+            self.move_to_food(self.food_target)
         elif self.state == Prey_State.EATING:
             self.energy += self.er
             self.food_target = None
         elif self.state == Prey_State.SCANING:
+            print("SCAN1")
             self.scan()
         elif self.state == Prey_State.FLEEING and (self.is_safe is False):
             self.flee()
@@ -180,23 +185,25 @@ class PreyAgent(mesa.Agent):
                         else:
                             self.state = Prey_State.MOVING
 
-    # TODO choose random parent, force birth with no energy cost
+    # TODO choose random parent, force birth with no energy cost --> possibly actually should do that in model?
 
     # PREY ACTIONS
 
     def move(self):
         # TODO add the grouping stuff to this, see sec 1.7.2 in sub paper)
+
         possible_steps = self.model.grid.get_neighborhood(
             self.pos,
             moore=True,
             include_center=False)
         new_position = self.random.choice(possible_steps)
         self.model.grid.move_agent(self, new_position)
+        self.current_action_time_remaining = self.dm * self.tm
 
     def distance(self, fooditem):
         return fooditem
+    # TODO this doesnt do anything, make it do something
 
-    # calculates distance between self and food item
 
     # get new food target or not
     def foodscan(self):
@@ -210,27 +217,43 @@ class PreyAgent(mesa.Agent):
             if RAND < p:
                 if self.distance(fooditem) < chosenitem:
                     chosenitem = fooditem
-
         return chosenitem
 
     def move_to_food(self, food_item):
-        self.position = food_item.position - \
-            (self.dr * abs(food_item.position - self.position))/2
-        # TODO duration is distance moved * tM
+        new_position = food_item.position - \
+                       (self.dr * abs(food_item.position - self.position))/2
+        self.position = new_position
+        self.current_action_time_remaining = spatial.distance.euclidean(self.position, new_position) * self.tm
 
     def eat(self, food_item):
         # resource items that are eaten disappear immediately (no half eating possible)
         self.model.remove_agents_food.append(food_item)
         # This should remove the agent from the grid, immediately to prevent it being eaten twice
         food_item.remove_agent()
+        self.current_action_time_remaining = self.tf
 
+    # currently unworking until can access predator coordinates
     def scan(self):
+        pass
+        # for neighbour in self.model.grid.get_neighbors(self.position, moore=True, include_center=False, radius=50):
+        #     if isinstance(neighbour, mesa.Agent.PredatorAgent):
+        #         print("here")
+        # TODO add get position method in predator?
         for predator in range(len(self.model.predators)):
-            pass
+            predator_distance = spatial.distance.euclidean(self.position, predator.get_position())
+            pd = pow(self.h, self.N)/((pow(predator_distance, self.N))*pow(self.h, self.N)) * (math.pi / self.av) * (self.tv / self.t_min)
+            if pd < random.random():
+                self.detected_predator = predator
+                break
+        if self.detected_predator is not None:
+            self.current_action_time_remaining = self.tv
+        else:
+            self.current_action_time_remaining = random.randint(0, self.tv)
 
     def flee(self):
         # No change in spatial position, safety is simply assumed
         self.is_safe = True
+        self.detected_predator = None
         self.current_action_time_remaining = self.reaction_time
 
     def reproduce(self):
