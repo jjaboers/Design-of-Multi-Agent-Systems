@@ -1,6 +1,9 @@
+import mesa
+
+
 class FoodAgent(mesa.Agent):
     """ Agent representing the resource items """
-
+    type = "food"
     def __init__(self, unique_id, model):
         super().__init__(unique_id, model)
         self.position = (0, 0)

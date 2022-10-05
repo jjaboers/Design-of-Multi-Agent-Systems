@@ -47,13 +47,15 @@ def get_params_predator_scaled(scales = [1, 2, 2]):
     params["reproduction_cost"] = params["max_energy"] / scales[1]
     params["offspring_energy"] = params["max_energy"] / scales[2]
 
+
 class PredatorAgent(mesa.Agent):
     """An agent that is a predator"""
-
     def __init__(self, unique_id, model, params = default_params_predator):
         super().__init__(unique_id, model)
         # non-evolvable parameters
+
         # not variable parameters, these are always the same at construction 
+        self.type = "predator"
         self.id = unique_id
         self.age = 0
         self.state = Predator_State.SEARCHING
@@ -139,6 +141,9 @@ class PredatorAgent(mesa.Agent):
             self.eat()
         
         self.age += 1
+    
+    def set_position(self, pos):
+        self.position = pos
 
     def search(self):
         pass
@@ -198,3 +203,4 @@ class PredatorAgent(mesa.Agent):
 
     def die(self): 
         self.state = Predator_State.DEAD
+
