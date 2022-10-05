@@ -6,11 +6,10 @@ import random
 # searching is roaming while scanning is looking
 class Predator_State(Enum):
         SEARCHING   =   1
-        SNEAKING    =   2
-        CHASING     =   3
-        SCANNING    =   4
-        EATING      =   5
-        DEAD        =   6
+        CHASING     =   2
+        SCANNING    =   3
+        EATING      =   4
+        DEAD        =   5
 
 # this way all params can be manipulated in higher levels
 default_params_predator = {
@@ -38,6 +37,7 @@ default_params_predator = {
     "attack_distance"           :   5       ,   # paper: 5, 7, 9
     "prey_detection_range"      :   50      ,   # not sure because angle and r 
     "attack_speed"              :   11.1    ,   # (m/s) prey paper, check wolf paper
+    "search_duration"           :   3
 }
 
 # To ensure proportions are correct
@@ -60,6 +60,7 @@ class PredatorAgent(mesa.Agent):
         self.age = 0
         self.state = Predator_State.SEARCHING
         self.min_energy = 0
+        self.t_current_activity = 0
         # will be a prey object
         self.target = None
         # for moving to a location will be a tuple
@@ -104,6 +105,8 @@ class PredatorAgent(mesa.Agent):
         self.max_speed = params["max_speed"] 
         # metabolism
         self.energy_cost = params["energy_cost"]  
+        # roaming time
+        self.search_duration = params["search_duration"]
         # moving----------------------------------------------------------------
 
         
@@ -130,9 +133,6 @@ class PredatorAgent(mesa.Agent):
             return 
         elif self.state == Predator_State.SEARCHING:
             self.search()
-        # the whole sneaking part might be redunant
-        elif self.state == Predator_State.SNEAKING:
-            self.sneak()
         elif self.state == Predator_State.CHASING:
             self.chase()
         elif self.state == Predator_State.SCANNING:
@@ -140,16 +140,26 @@ class PredatorAgent(mesa.Agent):
         elif self.state == Predator_State.EATING:
             self.eat()
         
+        # TODO check if not better in each states func
+        self.t_current_activity += 1
         self.age += 1
     
     def set_position(self, pos):
         self.position = pos
-
+    
+    # random movement with
     def search(self):
-        pass
-
-    def sneak(self):
-        pass
+        if self.t_current_activity >= self.search_duration:
+            self.set_state(Predator_State.SCANNING)
+            return
+        
+        possible_steps = self.model.grid.get_neighborhood(
+            self.position,
+            moore=True,
+            include_center=False)
+        new_position = self.random.choice(possible_steps)
+        self.move(new_position)
+        
 
     def chase(self):
         pass
@@ -160,14 +170,16 @@ class PredatorAgent(mesa.Agent):
     def eat(self):
         pass
 
-    def move(self):
-        pass
+    def move(self, new_position):
+        self.model.grid.move_agent(self, new_position)
+        self.set_position(new_position)
 
-    def set_target(self, pos):
-        pass
+    def set_target(self, target):
+        self.target = target
 
     def set_state(self, state):
-        pass
+        self.state = state
+        self.t_current_activity = 0
 
     def get_state(self):
         return self.state
@@ -175,32 +187,35 @@ class PredatorAgent(mesa.Agent):
     def is_alive(self):
         return self.state != Predator_State.DEAD
     
-    # could be faster with euclidean on lists and custom dist function
-    def is_at_destination(self):
-        dist =  np.linalg.norm(
-                    np.asarray(self.destination) - np.asarray(self.position))
-        if dist < 0.01: # arbitrary threshold TODO check if works
-            return True 
-        return False
+    # is more appropriate for continues world
+    # # could be faster with euclidean on lists and custom dist function
+    # def is_at_destination(self):
+    #     dist =  np.linalg.norm(
+    #                 np.asarray(self.destination) - np.asarray(self.position))
+    #     if dist < 0.01: # arbitrary threshold TODO check if works
+    #         return True 
+    #     return False
     
-    # Also sets speed accordingly 
-    def set_destination(self, destination):
-        self.destination = destination
-        vel = np.asarray(self.destination) - np.asarray(self.position)
-        vel = vel / np.linalg.norm(vel) # nromalize vector
-        self.speed_vector = vel * self.max_speed
+    # # Also sets speed accordingly 
+    # def set_destination(self, destination):
+    #     self.destination = destination
+    #     vel = np.asarray(self.destination) - np.asarray(self.position)
+    #     vel = vel / np.linalg.norm(vel) # nromalize vector
+    #     self.speed_vector = vel * self.max_speed
     
-    # TODO check bounds
-    def set_random_destination(self):
-        x = random.randint(0, self.model.grid.width - 1)
-        y = random.randint(0, self.model.grid.height - 1)
-        self.set_destination((x,y))
+    # # TODO check bounds
+    # def set_random_destination(self):
+    #     x = random.randint(0, self.model.grid.width - 1)
+    #     y = random.randint(0, self.model.grid.height - 1)
+    #     self.set_destination((x,y))
 
         
     # sexual or asexual ?
     def reproduce(self):
         pass
-
+    
+    # changes shape 
     def die(self): 
-        self.state = Predator_State.DEAD
+        self.set_state(Predator_State.DEAD)
+        self.model.remove_agents_predator.append(self)
 
