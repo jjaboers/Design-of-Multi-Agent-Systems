@@ -191,6 +191,25 @@ class PreyAgent(mesa.Agent):
 
     def move(self):
         # TODO add the grouping stuff to this, see sec 1.7.2 in sub paper)
+        # TODO how to get neighbours, but only of class prey, current idea isn't efficent
+        # count_neighbours = 0
+        # for prey in range(len(self.model.prey)):
+        #     prey_distance = spatial.distance.euclidean(self.position, prey.get_position())
+        #     if prey_distance < self.zr:
+        #         count_neighbours += 1
+        # if count_neighbours <= self.nr:
+        #     d = ...
+        # else:
+        #     d = ...
+        # if ...:
+        #     v = d
+        # else:
+        #     ...
+        # if random.random() < 0.5:
+        #     t = - self.am
+        # else:
+        #     t = self.am
+        # turn ...
 
         possible_steps = self.model.grid.get_neighborhood(
             self.pos,
