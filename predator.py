@@ -15,8 +15,8 @@ class Predator_State(Enum):
 default_params_predator = {
     "position"                  :   (0, 0)  ,
     "initial_energy"            :   100000  ,
-    "search_radius"             :   10      ,
-    "search_angle"              :   250     ,
+    "search_radius"             :   100     ,   # meters ??
+    "search_angle"              :   250     ,   # degrees TODO probably take out
     "t_food_scan"               :   3       ,
     "alignment"                 :   50      ,
     "reach"                     :   0.9     ,
@@ -70,6 +70,8 @@ class PredatorAgent(mesa.Agent):
         self.destination = None
         self.model = model
         self.speed_vector = np.array([0, 0])
+        self.nearby_predators = []
+        self.nearby_prey = []
         
 
         # constants-------------------------------------------------------------
@@ -173,9 +175,15 @@ class PredatorAgent(mesa.Agent):
         #   -> eat agent
     
     def scan(self):
-        pass
         # if prey detected -> set_target -> chase
         # if no prey -> search
+        # TODO check if in the full sequnece this is correct
+
+        if self.t_current_activity >= self.search_duration:
+            self.set_state(Predator_State.SEARCHING)
+            return 
+        # TODO finish 
+
 
     def eat(self):
         pass
