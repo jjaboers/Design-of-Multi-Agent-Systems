@@ -13,11 +13,10 @@ model_reporters = {
 	"n_food"		: 	lambda m: m.n_agents_per_type["food"]	,
 	"n_predator"	: 	lambda m: m.n_agents_per_type["predator"]	
 }
-# agent_reporters = {
-# 	"life_span"		:	["unique_id", "age"]					,
-# 	"life_span_type":	["type", "age"]
-# }
-agent_reporters = None
+agent_reporters = {
+	"params"		:	"params"								,
+}
+
 
 class DataCollector(DC):
 	def __init__(self, model):
