@@ -10,7 +10,8 @@ model = Model(setup.N_AGENTS, setup.UI_WIDTH, setup.UI_HEIGHT)
 for i in range(20):
     model.step()
     
-
+print(model.data_collector.get_model_vars_dataframe())
+print(model.data_collector.get_agent_vars_dataframe())
 
 agent_counts = np.zeros((model.grid.width, model.grid.height))
 for cell in model.grid.coord_iter():
