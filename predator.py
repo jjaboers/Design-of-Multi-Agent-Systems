@@ -54,7 +54,7 @@ def get_params_predator_scaled(scales = [1, 2, 2]):
 class PredatorAgent(TypedAgent):
     """An agent that is a predator"""
     def __init__(self, unique_id, model, params = default_params_predator):
-        super().__init__(unique_id, model)
+        super().__init__(unique_id, model, params)
         # non-evolvable parameters
 
         # not variable parameters, these are always the same at construction 

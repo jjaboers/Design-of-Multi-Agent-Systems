@@ -9,9 +9,9 @@ class TypedAgent(mesa.Agent):
 	position = None
 	params = []
 	age = 0
-	def __init__(self, unique_id, model):
+	def __init__(self, unique_id, model, params = None):
 		super().__init__(unique_id, model)
-
+		self.params = params
 
 	def set_position(self, pos):
 		self.position = pos
