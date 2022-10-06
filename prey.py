@@ -1,9 +1,9 @@
-import mesa
+from TypedAgent import TypedAgent
 import numpy as np
 import random
 import setup
 
-class PreyAgent(mesa.Agent):
+class PreyAgent(TypedAgent):
     """An agent that is a prey, as described in the paper."""
     # non-evolvable parameters
     type = "prey"
@@ -30,8 +30,7 @@ class PreyAgent(mesa.Agent):
     waiting_time = 0  # TODO find initial value
     def __init__(self, unique_id, model):
         super().__init__(unique_id, model)
-        print("INSIDE")
-        print(getattr(self.model, 'num_prey_agents'))
+        
         # evolvable parameters
         self.model = model
         self.zr = 20  # repulsion zone, affected by evolution, TODO set it to random value between 0 and 50, sd = 10
@@ -113,8 +112,6 @@ class PreyAgent(mesa.Agent):
         #     # TODO offspring inherit all evolvable parameters + mutate, maybe make functions inherit() and evolve()
         # if self.model.num_prey_agents < 10:
         #     pass
-    def set_position(self, pos):
-        self.position = pos
 
     def set_energy(self, new_energy):
         self.energy = new_energy
