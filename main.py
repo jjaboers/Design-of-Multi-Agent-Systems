@@ -12,6 +12,8 @@ for i in range(20):
     
 print(model.data_collector.get_model_vars_dataframe())
 print(model.data_collector.get_agent_vars_dataframe())
+print(model.data_collector.evolvable_params_predator)
+print(model.data_collector.evolvable_params_prey)
 
 agent_counts = np.zeros((model.grid.width, model.grid.height))
 for cell in model.grid.coord_iter():

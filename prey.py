@@ -375,7 +375,7 @@ class PreyAgent(TypedAgent):
 
         if getattr(self.model, 'num_prey_agents') > 10 and self.energy >= self.max_energy:
             self.energy = self.energy - self.max_energy / 2
-
+            # TODO params is the baseclass name maybe use evolvable
             child_params = mutate(self.params.copy())
             a = PreyAgent(getattr(self.model, 'num_prey_agents') + 1, self.model, child_params)
             self.num_prey_agents = self.num_prey_agents + 1
