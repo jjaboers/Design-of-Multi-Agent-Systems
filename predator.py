@@ -59,7 +59,6 @@ class PredatorAgent(TypedAgent):
 
         # not variable parameters, these are always the same at construction 
         self.type = "predator"
-        self.age = 0
         self.state = Predator_State.SEARCHING
         self.min_energy = 0
         self.t_current_activity = 0
@@ -229,11 +228,10 @@ class PredatorAgent(TypedAgent):
     #     self.set_destination((x,y))
 
         
-    # sexual or asexual ?
+    # asexual reproduction
     def reproduce(self):
         pass
     
-    # changes shape 
     def die(self): 
+        super().die()
         self.set_state(Predator_State.DEAD)
-        self.model.remove_agents_predator.append(self)
