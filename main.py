@@ -9,6 +9,7 @@ from model import Model
 model = Model(setup.N_AGENTS, setup.UI_WIDTH, setup.UI_HEIGHT)
 for i in range(20):
     model.step()
+    
 
 
 agent_counts = np.zeros((model.grid.width, model.grid.height))
