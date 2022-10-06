@@ -1,7 +1,8 @@
 import math
-
 import mesa
 from enum import Enum
+from TypedAgent import TypedAgent
+
 import numpy as np
 import random
 from scipy import spatial
@@ -19,7 +20,7 @@ class Prey_State(Enum):
     DEAD = 8
 
 
-class PreyAgent(mesa.Agent):
+class PreyAgent(TypedAgent):
     """An agent that is a prey, as described in the paper."""
     # non-evolvable parameters
     type = "prey"
@@ -46,8 +47,7 @@ class PreyAgent(mesa.Agent):
     t_min = 10
     def __init__(self, unique_id, model):
         super().__init__(unique_id, model)
-        print("INSIDE")
-        print(getattr(self.model, 'num_prey_agents'))
+        
         # evolvable parameters
         self.model = model
         self.state = Prey_State.NOTHING
@@ -290,10 +290,6 @@ class PreyAgent(mesa.Agent):
         # if self.model.num_prey_agents < 10:
         #     pass
 
-    # SET NON-EVOLVABLE PARAMS
-
-    def set_position(self, pos):
-        self.position = pos
 
     def set_energy(self, new_energy):
         self.energy = new_energy
