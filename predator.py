@@ -1,7 +1,7 @@
 import mesa
 from enum import Enum
 import numpy as np
-import random
+from TypedAgent import TypedAgent
 
 # searching is roaming while scanning is looking
 class Predator_State(Enum):
@@ -51,7 +51,7 @@ def get_params_predator_scaled(scales = [1, 2, 2]):
     params["offspring_energy"] = params["max_energy"] / scales[2]
 
 
-class PredatorAgent(mesa.Agent):
+class PredatorAgent(TypedAgent):
     """An agent that is a predator"""
     def __init__(self, unique_id, model, params = default_params_predator):
         super().__init__(unique_id, model)
@@ -59,7 +59,6 @@ class PredatorAgent(mesa.Agent):
 
         # not variable parameters, these are always the same at construction 
         self.type = "predator"
-        self.id = unique_id
         self.age = 0
         self.state = Predator_State.SEARCHING
         self.min_energy = 0
@@ -150,8 +149,6 @@ class PredatorAgent(mesa.Agent):
         self.t_current_activity += 1
         self.age += 1
     
-    def set_position(self, pos):
-        self.position = pos
     
     # random movement with scanning inbetween
     def search(self):
@@ -240,4 +237,3 @@ class PredatorAgent(mesa.Agent):
     def die(self): 
         self.set_state(Predator_State.DEAD)
         self.model.remove_agents_predator.append(self)
-
