@@ -1,4 +1,3 @@
-import imp
 import mesa
 from mesa.time import RandomActivation
 from predator import PredatorAgent
