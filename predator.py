@@ -20,7 +20,7 @@ default_params_predator = {
     "t_food_scan"               :   3       ,
     "alignment"                 :   50      ,
     "reach"                     :   0.9     ,
-    "max_speed "                :   0.12    ,
+    "max_speed"                 :   0.12    ,
     "max_neighbour_awareness"   :   50      ,
     "energy_cost"               :   1       ,
     "max_energy"                :   100000  ,
@@ -39,6 +39,9 @@ default_params_predator = {
     "attack_speed"              :   11.1    ,   # (m/s) prey paper, check wolf paper
     "search_duration"           :   3
 }
+
+def get_default_params_predator():
+    return default_params_predator.copy()
 
 # To ensure proportions are correct
 def get_params_predator_scaled(scales = [1, 2, 2]):
