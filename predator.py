@@ -15,12 +15,12 @@ class Predator_State(Enum):
 default_params_predator = {
     "position"                  :   (0, 0)  ,
     "initial_energy"            :   100000  ,
-    "search_radius"             :   10      ,
-    "search_angle"              :   250     ,
+    "search_radius"             :   100     ,   # meters ??
+    "search_angle"              :   250     ,   # degrees TODO probably take out
     "t_food_scan"               :   3       ,
     "alignment"                 :   50      ,
     "reach"                     :   0.9     ,
-    "max_speed "                :   0.12    ,
+    "max_speed"                 :   0.12    ,
     "max_neighbour_awareness"   :   50      ,
     "energy_cost"               :   1       ,
     "max_energy"                :   100000  ,
@@ -39,6 +39,9 @@ default_params_predator = {
     "attack_speed"              :   11.1    ,   # (m/s) prey paper, check wolf paper
     "search_duration"           :   3
 }
+
+def get_default_params_predator():
+    return default_params_predator.copy()
 
 # To ensure proportions are correct
 def get_params_predator_scaled(scales = [1, 2, 2]):
@@ -67,6 +70,8 @@ class PredatorAgent(mesa.Agent):
         self.destination = None
         self.model = model
         self.speed_vector = np.array([0, 0])
+        self.nearby_predators = []
+        self.nearby_prey = []
         
 
         # constants-------------------------------------------------------------
@@ -81,6 +86,7 @@ class PredatorAgent(mesa.Agent):
         # constants-------------------------------------------------------------
 
         # internal state--------------------------------------------------------
+        # TODO random position
         self.position = params["position"]
         self.energy = params["initial_energy"]
         # internal state--------------------------------------------------------
@@ -147,7 +153,7 @@ class PredatorAgent(mesa.Agent):
     def set_position(self, pos):
         self.position = pos
     
-    # random movement with
+    # random movement with scanning inbetween
     def search(self):
         if self.t_current_activity >= self.search_duration:
             self.set_state(Predator_State.SCANNING)
@@ -160,16 +166,32 @@ class PredatorAgent(mesa.Agent):
         new_position = self.random.choice(possible_steps)
         self.move(new_position)
         
-
+    # with current fleeing system more like charge
     def chase(self):
         pass
+        # TODO maybe add stamina (evolvable)
+        # if target.is_safe() -> search
+        # if dist(target, self) < threshold or in same cell
+        #   -> eat agent
     
     def scan(self):
-        pass
+        # if prey detected -> set_target -> chase
+        # if no prey -> search
+        # TODO check if in the full sequnece this is correct
+
+        if self.t_current_activity >= self.search_duration:
+            self.set_state(Predator_State.SEARCHING)
+            return 
+        # TODO finish 
+
 
     def eat(self):
         pass
-
+        # gain energy from prey
+        # set prey state on dead
+        # set_state(search)
+    
+    # TODO implement repulsion etc
     def move(self, new_position):
         self.model.grid.move_agent(self, new_position)
         self.set_position(new_position)

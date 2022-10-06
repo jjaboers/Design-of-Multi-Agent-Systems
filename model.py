@@ -19,6 +19,7 @@ class Model(mesa.Model):
         self.schedule = RandomActivation(self)
         self.fooditems = []
         self.predators = []
+        self.prey_list = []
         self.remove_agents_prey = []
         self.remove_agents_predator = []
         self.remove_agents_food = []
