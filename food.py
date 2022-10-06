@@ -14,5 +14,4 @@ class FoodAgent(TypedAgent):
     def step(self):
         # TODO test
         if random.randint(0, 10) < 5:
-            print("delete plant")
             self.model.schedule.remove(self)
