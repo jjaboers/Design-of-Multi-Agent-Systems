@@ -9,6 +9,7 @@ class TypedAgent(mesa.Agent):
 	position = None
 	params = []
 	age = 0
+	energy = 0
 	def __init__(self, unique_id, model, params = None):
 		super().__init__(unique_id, model)
 		self.params = params
@@ -27,3 +28,9 @@ class TypedAgent(mesa.Agent):
 
 	def step(self):
 		self.age += 1
+	
+	def get_energy(self):
+		return self.energy
+
+	def get_position(self):
+		return self.position

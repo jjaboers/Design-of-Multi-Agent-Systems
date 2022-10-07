@@ -3,9 +3,8 @@ from mesa.time import RandomActivation
 from predator import PredatorAgent
 from prey import PreyAgent
 from food import FoodAgent
-from time import sleep
 from data_collector import DataCollector
-
+from scipy.spatial import distance
 
 class Model(mesa.Model):
     """A model with some number of agents."""
@@ -45,6 +44,10 @@ class Model(mesa.Model):
         self.data_collector.collect(self)
         self.schedule.step()  # model shuffles the order of the agents, then activates and executes each agent’s step method
         self.update_model_data()
+        # print(self.predators)
+        # print(self.prey)
+        # print(self.food)
+        print(self.n_agents_per_type)
         
 
     def create_prey(self, num_prey_agents):
@@ -80,12 +83,6 @@ class Model(mesa.Model):
             a.set_position(cell)
             self.num_resources += 1
 
-    def _get_num_prey_agents(self):
-        return self.num_prey_agents
-
-    def _set_num_prey_agents(self, num_prey_agents=None):
-        self.num_prey_agents = num_prey_agents + self.num_prey_agents
-
 
     def get_n_agents_per_type(self):
         return self.n_agents_per_type
@@ -102,6 +99,7 @@ class Model(mesa.Model):
         self.food = [None] * self.n_agents_per_type["food"]
         #  update separate agent lists
         prey_idx, predator_idx, food_idx = 0, 0, 0
+        agent_buffer = self.schedule.agent_buffer()
         for agent in agent_buffer:
             if agent.get_type() == "prey":
                 self.prey[prey_idx] = agent
@@ -115,7 +113,25 @@ class Model(mesa.Model):
                 self.food[food_idx] = agent 
                 food_idx += 1
         
-
+    def get_closest_agent_of_type_in_range(self, pos, type, range):
+        agent_list = []
+        if type == "prey":
+            agent_list = self.prey 
+        if type == "predator":
+            agent_list = self.predators
+        if type == "food":
+            agent_list = self.food 
+        
+        ret_agent = None 
+        d_min = 10000000
+        for agent in agent_list:
+            dist = distance.euclidean(pos, agent.get_position())
+            if dist <= d_min and dist <= range:
+                ret_agent = agent 
+                d_min - dist 
+        return ret_agent
+            
+            
 
                 
 

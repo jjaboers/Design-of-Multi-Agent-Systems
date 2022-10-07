@@ -22,7 +22,7 @@ class Prey_State(Enum):
 
 
 default_params_prey = {
-    "position": (random.randrange(setup.UI_WIDTH), random.randrange(setup.UI_HEIGHT)),
+    "position": (random.randrange(setup.GRID_WIDTH), random.randrange(setup.GRID_HEIGHT)),
     "food_target": None,
     "zl": 25,  # alignment zone
     "dr": 0.9,  # individual reach
@@ -239,7 +239,7 @@ class PreyAgent(TypedAgent):
 
 
         # complete current action
-        print("Self state prey is ", self.state)
+        # print("Self state prey is ", self.state)
         if self.state == Prey_State.DEAD:
             return
         elif self.state == Prey_State.MOVING:
@@ -254,7 +254,7 @@ class PreyAgent(TypedAgent):
             self.energy += self.er
             self.food_target = None
         elif self.state == Prey_State.SCANNING:
-            print("SCAN1")
+            # print("SCAN1")
             self.scan()
         elif self.state == Prey_State.FLEEING and (self.is_safe is False):
             self.flee()
@@ -265,52 +265,52 @@ class PreyAgent(TypedAgent):
 
             # if RAND < self.pv or self.is_safe is True:
             if RAND < self.pv:
-                print("RAND IS ", RAND, " and self.pv ", self.pv)
-                print("is_safe ", self.is_safe)
+                # print("RAND IS ", RAND, " and self.pv ", self.pv)
+                # print("is_safe ", self.is_safe)
                 self.state = Prey_State.SCANNING
-                print(self.state , " is now ")
+                # print(self.state , " is now ")
             else:
-                print("else pv is ", self.pv)
+                # print("else pv is ", self.pv)
                 if self.food_target is not None:
-                    print("FOOD TARGET")
+                    # print("FOOD TARGET")
                     if self.distance(self.food_target) < self.dr:
                         self.state = Prey_State.EATING
-                        print(self.state)
+                        # print(self.state)
                     else:
                         self.state = Prey_State.MOVETOFOOD
-                        print(self.state)
+                        # print(self.state)
                 else:
                     if self.previous_state == Prey_State.MOVING:
                         if RAND < self.pm:
                             self.state = Prey_State.MOVING
-                            print(self.state)
+                            # print(self.state)
                         else:
                             self.state = Prey_State.FOODSCAN
-                            print(self.state)
+                            # print(self.state)
                     elif self.previous_state == Prey_State.EATING:
                         if RAND < self.pse:
                             self.state = Prey_State.FOODSCAN
-                            print(self.state)
+                            # print(self.state)
                         else:
                             self.state = Prey_State.MOVING
-                            print(self.state)
+                            # print(self.state)
                     elif self.previous_state == Prey_State.FLEEING:
                         self.state = Prey_State.SCANNING
                     elif self.previous_state == Prey_State.SCANNING:
                         if RAND < self.pse:
                             self.state = Prey_State.FOODSCAN
-                            print(self.state)
+                            # print(self.state)
                         else:
                             self.state = Prey_State.MOVING
-                            print(self.state)
+                            # print(self.state)
                     elif self.previous_state == Prey_State.NOTHING:
                         if RAND < self.pse:
                             self.state = Prey_State.FOODSCAN
-                            print(self.state)
+                            # print(self.state)
                         else:
                             self.state = Prey_State.MOVING
-                            print(self.state)
-        print("final state is ", self.state)
+                            # print(self.state)
+        # print("final state is ", self.state)
 
     # TODO choose random parent, force birth with no energy cost --> possibly actually should do that in model?
 
@@ -336,7 +336,7 @@ class PreyAgent(TypedAgent):
 
     def move(self):
         # Grouping
-        print("PREY IS MOVING TO ")
+        # print("PREY IS MOVING TO ")
         # define self.direction of facing the group
         if self.nrz >= self.nr: # repulsion
             if self.ar < self.di:
@@ -345,7 +345,7 @@ class PreyAgent(TypedAgent):
             if self.aa < self.di:
                 self.di = self.aa
         new_position = self.search_space()
-        print(new_position)
+        # print(new_position)
         self.model.grid.move_agent(self, new_position)
         self.set_position(new_position)
 
@@ -389,10 +389,10 @@ class PreyAgent(TypedAgent):
                     self.move()
 
     def distance(self, otherpos):
-        print(self.pos , " is th eposition ")
+        # print(self.pos , " is th eposition ")
         # (distance_x, distance_y) = (self.pos[0] - otherpos[0], self.pos[1] - otherpos[1])
         dist = np.sum(np.square(np.array((self.pos)), np.array((otherpos))))
-        print("distance is ", np.sqrt(dist))
+        # print("distance is ", np.sqrt(dist))
         return np.sqrt(dist)
 
     # TODO: should this return chosen fooditem or set a field to this fooditem
@@ -495,3 +495,9 @@ class PreyAgent(TypedAgent):
 
     def get_state(self):
         return self.state
+
+    def is_alive(self):
+        return self.state != Prey_State.DEAD
+
+    def is_safe(self):
+        return self.is_safe
