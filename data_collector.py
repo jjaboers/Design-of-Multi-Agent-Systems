@@ -15,7 +15,8 @@ agent_reporters = None
 
 class DataCollector(DC):
 	
-	def __init__(self, model):
+	def __init__(self, model, model_reporters = model_reporters, 
+			agent_reporters = agent_reporters):
 		super().__init__(model_reporters = model_reporters, 
 			agent_reporters = agent_reporters)
 		self.evolvable_params_prey = pd.DataFrame()
@@ -28,7 +29,7 @@ class DataCollector(DC):
 	def collect(self, model):
 		super().collect(model)
 		self.record_evolvable_params(model)
-	# TODO unique_id check does not work
+	
 	def record_evolvable_params(self, model):
 		agents = model.schedule.agent_buffer()
 		for agent in agents:

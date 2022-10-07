@@ -5,6 +5,7 @@ from TypedAgent import TypedAgent
 from prey import Prey_State
 import setup
 from scipy.spatial.distance import euclidean as dist
+
 # searching is roaming while scanning is looking
 class Predator_State(Enum):
         SEARCHING   =   1
@@ -21,7 +22,7 @@ default_params_predator = {
     "t_food_scan"               :   3       ,
     "alignment"                 :   50      ,
     "reach"                     :   1.0     ,
-    "max_speed"                 :   0.12    ,
+    "max_speed"                 :   2       ,   # TODO find right val
     "max_neighbour_awareness"   :   50      ,
     "energy_cost"               :   1       ,
     "max_energy"                :   100000  ,
@@ -133,6 +134,7 @@ class PredatorAgent(TypedAgent):
     
     # TODO check duration of step as age is in minutes
     def step(self):
+        print(self.state)
         if self.age >= self.max_age:
             self.die()
         # TODO implement death_rate 
@@ -177,17 +179,22 @@ class PredatorAgent(TypedAgent):
         if dist(self.position, self.target.get_position()) <= self.reach:
             self.set_state(Predator_State.EATING)
             return 
-        possible_steps = self.model.grid.get_neighborhood(
-            self.position,
-            moore=True,
-            include_center=False)
-        new_position = possible_steps[
+
+        for step in range(self.max_speed):
+            possible_steps = self.model.grid.get_neighborhood(
+                self.position,
+                moore=True,
+                include_center=False)
+            # Select position closest to target position
+            new_position = possible_steps[
                                         np.argmin(
-                                            [dist(self.position, pos) 
-                                            for pos in possible_steps]
+                                        [
+                                        dist(self.target.get_position(), pos) 
+                                        for pos in possible_steps
+                                        ]
                                         )
-                                    ]
-        self.move(new_position)
+                                        ]
+            self.move(new_position)
 
 
     
@@ -206,8 +213,9 @@ class PredatorAgent(TypedAgent):
 
 
     def eat(self):
-        # TODO maybe add default energy minimum
-        self.energy += self.target.get_energy() 
+        self.energy += self.target.get_energy()
+        if self.energy < self.max_energy:
+            self.energy = self.max_energy 
         self.target.set_state(Prey_State.DEAD)
         self.model.schedule.remove(self.target)
         self.set_state(Predator_State.SEARCHING)

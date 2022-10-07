@@ -12,6 +12,4 @@ class FoodAgent(TypedAgent):
         self.regrowth = None  # random timepoint in a year where they regrow
 
     def step(self):
-        # TODO test
-        if random.randint(0, 10) < 5:
-            self.model.schedule.remove(self)
+        pass

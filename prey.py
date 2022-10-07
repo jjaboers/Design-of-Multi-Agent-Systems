@@ -498,5 +498,4 @@ class PreyAgent(TypedAgent):
     def is_alive(self):
         return self.state != Prey_State.DEAD
 
-    def is_safe(self):
-        return self.is_safe
+        
