@@ -60,6 +60,18 @@ class Model(mesa.Model):
             a.set_position(cell)
             self.num_prey_agents += 1
 
+    def create_new_prey(self, evolv_params):
+        a = PreyAgent(self.next_id(), self, evolvable_params=evolv_params)
+        a.set_energy(a.max_energy / 2)
+        self.schedule.add(a)
+
+        # Add the agent to a random grid cell
+        cell = mesa.space.Grid.find_empty(self.grid)
+        # self.grid.place_agent(a, (x, y))
+        mesa.space.Grid.place_agent(self.grid, a, cell)
+        a.set_position(cell)
+        self.num_prey_agents += 1
+
     def create_predators(self, num_predator_agents):
         # Create predator agents
         for i in range(self.num_prey_agents+1, self.num_prey_agents + num_predator_agents):
