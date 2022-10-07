@@ -8,6 +8,7 @@ import random
 from scipy import spatial
 import setup
 from scipy.stats import truncnorm
+from copy import deepcopy
 
 
 class Prey_State(Enum):
@@ -90,6 +91,7 @@ def trunc_normal(lower, upper, sd, mu):
 
 
 def mutate(params):
+    print("params are " , params)
     for parameter in params:
         if random.random() < 0.05:
             if "zr" in parameter:
@@ -101,13 +103,34 @@ def mutate(params):
             elif "tp" in parameter:
                 pass
             elif "tv" in parameter:
-                params[parameter] = trunc_normal(1.67, 1.99, 0.4, params[parameter])
+                params[parameter] = trunc_normal(0.167, 1.99, 0.4, params[parameter])
+            elif "tm" in parameter:
+                params[parameter] = trunc_normal(0.167, 1.99, 0.4, params[parameter])
             elif "p" in parameter:
                 params[parameter] = trunc_normal(0, 1, 0.2, params[parameter])
-            elif "n" in parameter:
-                pass
-            elif "d" in parameter:
-                pass
+            # elif "n" in parameter:
+            #     pass
+            elif "dm" in parameter:
+                params[parameter] = trunc_normal(0, 100, 3, params[parameter])
+            elif "pv" in parameter:
+                params[parameter] = trunc_normal(0, 1, 0.2, params[parameter])
+            elif "pm" in parameter:
+                params[parameter] = trunc_normal(0, 1, 0.2, params[parameter])
+            elif "pse" in parameter:
+                params[parameter] = trunc_normal(0, 1, 0.2, params[parameter])
+            elif "psn" in parameter:
+                params[parameter] = trunc_normal(0, 1, 0.2, params[parameter])
+            elif "pmtf" in parameter:
+                params[parameter] = trunc_normal(0, 1, 0.2, params[parameter])
+            elif "ar" in parameter:
+                params[parameter] = trunc_normal(0, 360, 72, params[parameter])
+            elif "aa" in parameter:
+                params[parameter] = trunc_normal(0, 360, 72, params[parameter])
+            elif "nr" in parameter:
+                params[parameter] = trunc_normal(0, 100, 1, params[parameter])
+        # return at the end modified params
+        return params
+
 
 
 class PreyAgent(TypedAgent):
@@ -194,6 +217,7 @@ class PreyAgent(TypedAgent):
     # sets the initial values of evolvable parameters of the prey agent
     # TODO set all the parameters, currently only grouping is done
     def set_initial_evolvable_parameters(self):
+
         self.zr = trunc_normal(0, 50, 10)  # random value between 0 and 50, sd = 10
         za = trunc_normal(self.zr, 50, 10)  # random value between self.zr and 50, sd = 10
         self.set_attraction_zone(za)
@@ -206,7 +230,9 @@ class PreyAgent(TypedAgent):
     # STEP FUNCTION
     def step(self):
         self.age = self.age + 1
+
         self.energy = self.energy - self.em
+        print("self energy step1 ", self.energy)
 
         # Waiting time (after fleeing from predator)
         if self.is_safe == True:
@@ -215,6 +241,10 @@ class PreyAgent(TypedAgent):
                 self.state = Prey_State.NOTHING
                 # reset waiting time
                 self.waiting_time = 10
+            if getattr(self.model, 'num_prey_agents') > 10 and self.energy >= self.max_energy:
+                self.reproduce()
+            else:
+                self.force_birth()
 
         # TODO add reproduction and death? (page 9 paper)
         # TODO read closely 1.7.1, should this be done in model? ("model updating schedule")
@@ -252,6 +282,7 @@ class PreyAgent(TypedAgent):
             self.move_to_food(self.food_target)
         elif self.state == Prey_State.EATING:
             self.energy += self.er
+            print("self energy step eating ", self.energy)
             self.food_target = None
         elif self.state == Prey_State.SCANNING:
             # print("SCAN1")
@@ -478,17 +509,33 @@ class PreyAgent(TypedAgent):
         # neighbours = self.model.grid.get_neighbors(self.position, include_center=True)
         # n_children = int((len(neighbours)/2))
         # self.model.create_prey(n_children)
+        # energy changes due to birth
+        self.energy = self.energy - self.em / 2
+        print("self energy step1 ", self.energy)
+        # TODO params is the baseclass name maybe use evolvable
+        child_params = mutate(deepcopy(self.evolvable_params))
+        print("child params ", child_params)
+        self.model.create_new_prey(child_params)
+        print("created new prey!!!")
+        # a = PreyAgent(getattr(self.model, 'num_prey_agents') + 1, self.model, child_params)
+        # TODO offspring inherit all evolvable parameters + mutate, maybe make functions inherit() and evolve()
 
-        if getattr(self.model, 'num_prey_agents') > 10 and self.energy >= self.max_energy:
-            self.energy = self.energy - self.max_energy / 2
-            # TODO params is the baseclass name maybe use evolvable
-            child_params = mutate(self.params.copy())
-            a = PreyAgent(getattr(self.model, 'num_prey_agents') + 1, self.model, child_params)
-            self.num_prey_agents = self.num_prey_agents + 1
-            a.set_energy(self.max_energy / 2)
-            # TODO offspring inherit all evolvable parameters + mutate, maybe make functions inherit() and evolve()
-        if self.model.num_prey_agents < 10:
-            pass
+
+    def force_birth(self):
+        n = 5
+        print("self energy step force birth ", self.energy)
+        summed_energy_neighbours = 0
+        # for agent in self.model.grid.get_neighbors((setup.GRID_WIDTH, setup.GRID_HEIGHT),
+        #                                             moore=True, include_center=True,
+        #                                             radius=self.max_neighbour_awareness):
+        #     print("agent energy ", agent.energy)
+        #     summed_energy_neighbours += agent.energy
+        # summed_energy_neighbours = max(summed_energy_neighbours, 1)
+        # prob_to_birth = math.pow(self.energy / summed_energy_neighbours, n)
+        # print(" prob to birth ", str(prob_to_birth))
+        # if np.random.random() > prob_to_birth:
+        if np.random.random() > 0.5:
+            self.reproduce()
 
     def set_energy(self, new_energy):
         self.energy = new_energy
