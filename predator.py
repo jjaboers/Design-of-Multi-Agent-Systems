@@ -2,7 +2,9 @@ import mesa
 from enum import Enum
 import numpy as np
 from TypedAgent import TypedAgent
+from prey import Prey_State
 import setup
+from scipy.spatial.distance import euclidean as dist
 # searching is roaming while scanning is looking
 class Predator_State(Enum):
         SEARCHING   =   1
@@ -72,7 +74,6 @@ class PredatorAgent(TypedAgent):
         # for moving to a location will be a tuple
         self.destination = None
         self.model = model
-        self.speed_vector = np.array([0, 0])
         self.nearby_predators = []
         self.nearby_prey = []
         
@@ -146,7 +147,7 @@ class PredatorAgent(TypedAgent):
         elif self.state == Predator_State.EATING:
             self.eat()
         
-        # TODO check if not better in each states func
+    
         self.t_current_activity += 1
         self.age += 1
         self.energy -= self.energy_cost
@@ -167,31 +168,50 @@ class PredatorAgent(TypedAgent):
         
     # with current fleeing system more like charge
     def chase(self):
-        pass
+        if self.target == None or not self.target.is_alive():
+            self.set_state(Predator_State.SEARCHING)
+            return 
+        if self.target.is_safe:
+            self.set_state(Predator_State.SEARCHING)
+            return 
+        if dist(self.position, self.target.get_position()) <= self.reach:
+            self.set_state(Predator_State.EATING)
+            return 
+        possible_steps = self.model.grid.get_neighborhood(
+            self.position,
+            moore=True,
+            include_center=False)
+        new_position = possible_steps[
+                                        np.argmin(
+                                            [dist(self.position, pos) 
+                                            for pos in possible_steps]
+                                        )
+                                    ]
+        self.move(new_position)
 
-        # TODO maybe add stamina (evolvable)
-        # if target.is_safe() -> search
-        # if dist(target, self) < threshold or in same cell
-        #   -> eat agent
+
     
     def scan(self):
-        # if prey detected -> set_target -> chase
-        # if no prey -> search
-        # TODO check if in the full sequnece this is correct
-
         if self.t_current_activity >= self.search_duration:
             self.set_state(Predator_State.SEARCHING)
             return 
-        # closest 
-        
-        # TODO finish 
+        agent = self.model.get_closest_agent_of_type_in_range(  
+                                            pos = self.position , 
+                                            type = "prey"       , 
+                                            range = self.prey_detection_range
+                                            )
+        if agent != None:
+            self.target = agent
+            self.set_state(Predator_State.CHASING)
 
 
     def eat(self):
-        pass
-        # gain energy from prey
-        # set prey state on dead
-        # set_state(search)
+        # TODO maybe add default energy minimum
+        self.energy += self.target.get_energy() 
+        self.target.set_state(Prey_State.DEAD)
+        self.model.schedule.remove(self.target)
+        self.set_state(Predator_State.SEARCHING)
+
     
     # TODO implement repulsion etc
     def move(self, new_position):
@@ -211,28 +231,6 @@ class PredatorAgent(TypedAgent):
     def is_alive(self):
         return self.state != Predator_State.DEAD
     
-    # is more appropriate for continues world
-    # # could be faster with euclidean on lists and custom dist function
-    # def is_at_destination(self):
-    #     dist =  np.linalg.norm(
-    #                 np.asarray(self.destination) - np.asarray(self.position))
-    #     if dist < 0.01: # arbitrary threshold TODO check if works
-    #         return True 
-    #     return False
-    
-    # # Also sets speed accordingly 
-    # def set_destination(self, destination):
-    #     self.destination = destination
-    #     vel = np.asarray(self.destination) - np.asarray(self.position)
-    #     vel = vel / np.linalg.norm(vel) # nromalize vector
-    #     self.speed_vector = vel * self.max_speed
-    
-    # # TODO check bounds
-    # def set_random_destination(self):
-    #     x = random.randint(0, self.model.grid.width - 1)
-    #     y = random.randint(0, self.model.grid.height - 1)
-    #     self.set_destination((x,y))
-
         
     # asexual reproduction
     def reproduce(self):
