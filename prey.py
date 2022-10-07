@@ -12,7 +12,6 @@ from scipy.stats import truncnorm
 
 class Prey_State(Enum):
     NOTHING = 1  # TODO called "NORMAL" in paper?
-    SAFE = 2
     MOVING = 3
     FOODSCAN = 4
     MOVETOFOOD = 5
@@ -36,7 +35,7 @@ default_params_prey = {
     "death_rate": 0.1,
     "max_age": 10512000,  # 60 * 24 * 365 * 20: 20 years expressed in minutes
     "mutation_rate": 0.05,
-    "is_safe": False,
+    "is_safe": True,
     "waiting_time": 10,  # TODO find initial value
     "reaction_time": 1,
     "er": 2,  # energy gained per food item TODO should this be in model?
@@ -122,7 +121,7 @@ class PreyAgent(TypedAgent):
         self.previous_state = Prey_State.NOTHING
         self.current_action_time_remaining = 0
         self.detected_predator = False  # keep it like this or make it Boolean ?
-        self.age = 0
+        self.age = 100
         self.energy = 100000
         self.min_energy = 0
         self.default_params = default_params
@@ -210,10 +209,12 @@ class PreyAgent(TypedAgent):
         self.energy = self.energy - self.em
 
         # Waiting time (after fleeing from predator)
-        if self.state == Prey_State.SAFE:
+        if self.is_safe == True:
             self.waiting_time = self.waiting_time - 1
-        if self.waiting_time == 0:
-            self.state == Prey_State.NOTHING
+            if self.waiting_time == 0:
+                self.state = Prey_State.FOODSCAN
+                # reset waiting time
+                self.waiting_time = 10
 
         # TODO add reproduction and death? (page 9 paper)
         # TODO read closely 1.7.1, should this be done in model? ("model updating schedule")
@@ -222,6 +223,7 @@ class PreyAgent(TypedAgent):
         if self.current_action_time_remaining == 0:
             self.previous_state = self.state
             self.state = Prey_State.NOTHING
+            self.current_action_time_remaining = self.waiting_time
         else:  # count down time remaining in action by 1
             self.current_action_time_remaining -= 1
 
@@ -231,15 +233,9 @@ class PreyAgent(TypedAgent):
             self.flee()
             self.move()
 
-        for neighbour in self.model.grid.get_neighbors(self.position, moore=True, include_center=False,
-                                                       radius=self.max_neighbour_awareness):
-            if neighbour.get_type() == "prey":
-                self.nrz += 1
-                self.di = ( self.di + neighbour.di ) / 2
-                if neighbour.get_state() == Prey_State.FLEEING:
-                    self.state = Prey_State.FLEEING
-                    self.flee()
-                    self.move()
+        self.check_group()
+            # elif neighbour.get_type() == "predator":
+
 
 
         # complete current action
@@ -262,38 +258,58 @@ class PreyAgent(TypedAgent):
             self.scan()
         elif self.state == Prey_State.FLEEING and (self.is_safe is False):
             self.flee()
+            self.move()
         # if current action complete or NONE, choose new action
         elif self.state == Prey_State.NOTHING:
-            RAND = random.random()
+            RAND = np.random.rand()
 
-            if RAND < self.pv or self.is_safe is True:
+            # if RAND < self.pv or self.is_safe is True:
+            if RAND < self.pv:
                 print("RAND IS ", RAND, " and self.pv ", self.pv)
                 print("is_safe ", self.is_safe)
                 self.state = Prey_State.SCANNING
                 print(self.state , " is now ")
             else:
+                print("else pv is ", self.pv)
                 if self.food_target is not None:
                     print("FOOD TARGET")
                     if self.distance(self.food_target) < self.dr:
                         self.state = Prey_State.EATING
+                        print(self.state)
                     else:
                         self.state = Prey_State.MOVETOFOOD
+                        print(self.state)
                 else:
                     if self.previous_state == Prey_State.MOVING:
                         if RAND < self.pm:
                             self.state = Prey_State.MOVING
+                            print(self.state)
                         else:
                             self.state = Prey_State.FOODSCAN
+                            print(self.state)
                     elif self.previous_state == Prey_State.EATING:
                         if RAND < self.pse:
                             self.state = Prey_State.FOODSCAN
+                            print(self.state)
                         else:
                             self.state = Prey_State.MOVING
-                    elif self.previous_state == Prey_State.MOVING:
+                            print(self.state)
+                    elif self.previous_state == Prey_State.FLEEING:
+                        self.state = Prey_State.SCANNING
+                    elif self.previous_state == Prey_State.SCANNING:
                         if RAND < self.pse:
                             self.state = Prey_State.FOODSCAN
+                            print(self.state)
                         else:
                             self.state = Prey_State.MOVING
+                            print(self.state)
+                    elif self.previous_state == Prey_State.NOTHING:
+                        if RAND < self.pse:
+                            self.state = Prey_State.FOODSCAN
+                            print(self.state)
+                        else:
+                            self.state = Prey_State.MOVING
+                            print(self.state)
         print("final state is ", self.state)
 
     # TODO choose random parent, force birth with no energy cost --> possibly actually should do that in model?
@@ -361,8 +377,23 @@ class PreyAgent(TypedAgent):
         # self.model.grid.move_agent(self, new_position)
         self.current_action_time_remaining = self.dm * self.tm
 
+    def check_group(self):
+        for neighbour in self.model.grid.get_neighbors(self.position, moore=True, include_center=False,
+                                                       radius=self.max_neighbour_awareness):
+            if neighbour.get_type() == "prey":
+                self.nrz += 1
+                self.di = ( self.di + neighbour.di ) / 2
+                if neighbour.get_state() == Prey_State.FLEEING:
+                    self.state = Prey_State.FLEEING
+                    self.flee()
+                    self.move()
+
     def distance(self, otherpos):
-        return self.model.grid.get_distance(self.pos, otherpos)
+        print(self.pos , " is th eposition ")
+        # (distance_x, distance_y) = (self.pos[0] - otherpos[0], self.pos[1] - otherpos[1])
+        dist = np.sum(np.square(np.array((self.pos)), np.array((otherpos))))
+        print("distance is ", np.sqrt(dist))
+        return np.sqrt(dist)
 
     # TODO: should this return chosen fooditem or set a field to this fooditem
     def foodscan(self):
@@ -416,21 +447,24 @@ class PreyAgent(TypedAgent):
         food_item.remove_agent()
         self.current_action_time_remaining = self.current_action_time_remaining - self.te
 
+
+
     def scan(self):
         for neighbour in self.model.grid.get_neighbors(self.position, moore=True, include_center=False,
                                                        radius=self.max_neighbour_awareness):
             if neighbour.get_type() == "predator":
-                predator_distance = self.distance(neighbour.get_position())
+                predator_distance = self.distance(neighbour.position)
                 pd = pow(self.h, self.N) / ((pow(predator_distance, self.N)) * pow(self.h, self.N)) * (
                             math.pi / self.av) * (self.tv / self.t_min)
                 if pd < random.random():
+                    print("pd is ", pd)
                     self.detected_predator = neighbour
                     break
 
         if self.detected_predator is None:
             self.current_action_time_remaining = self.tv
         else:
-            self.current_action_time_remaining = random.randint(0, self.tv)
+            self.current_action_time_remaining = random.randint(0, int(self.tp))
 
     def flee(self):
         # No change in spatial position, safety is simply assumed
