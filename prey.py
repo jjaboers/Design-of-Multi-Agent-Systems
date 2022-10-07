@@ -24,7 +24,7 @@ class Prey_State(Enum):
 default_params_prey = {
     "position": (random.randrange(setup.UI_WIDTH), random.randrange(setup.UI_HEIGHT)),
     "food_target": None,
-    "zl": 50,  # alignment zone
+    "zl": 25,  # alignment zone
     "dr": 0.9,  # individual reach
     "max_speed": 0.1,
     "max_neighbour_awareness": 50,  # meters
@@ -129,11 +129,11 @@ class PreyAgent(TypedAgent):
 
         self.position = default_params["position"]
         self.food_target = default_params["food_target"]
-        self.zl = default_params["zl"]
-        self.dr = default_params["dr"]
-        self.max_speed = default_params["max_speed"]
-        self.max_neighbour_awareness = default_params["max_neighbour_awareness"]
-        self.h = default_params["h"]
+        self.zl = int(default_params["zl"])
+        self.dr = int(default_params["dr"] * setup.PROPORTION)
+        self.max_speed = int(default_params["max_speed"] * setup.PROPORTION)
+        self.max_neighbour_awareness = int(default_params["max_neighbour_awareness"] * setup.PROPORTION)
+        self.h = int(default_params["h"]) if int(default_params["h"]) > 5 else 5
         self.N = default_params["N"]
         self.em = default_params["em"]
         self.max_energy = default_params["max_energy"]
@@ -161,17 +161,17 @@ class PreyAgent(TypedAgent):
         # fleeing
         self.tp = evolvable_params["tp"]  # flee duration, minimum 0, sd = 5
         # grouping
-        self.zr = evolvable_params["zr"]  # repulsion zone, between 0 and 50, sd = 10
-        self.za = evolvable_params["za"]  # attractrion zone, between zr and 50, sd = 10
+        self.zr = evolvable_params["zr"]   # repulsion zone, between 0 and 50, sd = 10
+        self.za = evolvable_params["za"]   # attractrion zone, between zr and 50, sd = 10
         self.aa = evolvable_params["aa"]  # maximum turning angle for attraction, between 0 and 360, sd = 72
         self.ar = evolvable_params["ar"]  # maximum turning angle for repulsion, between 0 and 360, sd = 72
         self.nr = evolvable_params["nr"]  # tolerated neighbors, (0 or 1)
         # movement
         self.tm = evolvable_params["tm"]  # move duration, between 0.167 and 1.99, sd = 0.4
-        self.dm = evolvable_params["dm"]  # move distance, minimum 0, sd = 3
+        self.dm = evolvable_params["dm"] * setup.PROPORTION  # move distance, minimum 0, sd = 3
         self.am = evolvable_params["am"]  # move angle, between 0 and 360, sd = 72
         # foraging
-        self.df = evolvable_params["df"]  # search radius of forager
+        self.df = evolvable_params["df"]  * setup.PROPORTION  # search radius of forager
         self.af = evolvable_params["af"]  # search angle, angle between food and forward direction
         self.tf = evolvable_params["tf"]  # foodscan duration
         self.neighbours = []
@@ -212,7 +212,7 @@ class PreyAgent(TypedAgent):
         if self.is_safe == True:
             self.waiting_time = self.waiting_time - 1
             if self.waiting_time == 0:
-                self.state = Prey_State.FOODSCAN
+                self.state = Prey_State.NOTHING
                 # reset waiting time
                 self.waiting_time = 10
 
@@ -453,6 +453,7 @@ class PreyAgent(TypedAgent):
         for neighbour in self.model.grid.get_neighbors(self.position, moore=True, include_center=False,
                                                        radius=self.max_neighbour_awareness):
             if neighbour.get_type() == "predator":
+                print("detect predator, with h ", self.h)
                 predator_distance = self.distance(neighbour.position)
                 pd = pow(self.h, self.N) / ((pow(predator_distance, self.N)) * pow(self.h, self.N)) * (
                             math.pi / self.av) * (self.tv / self.t_min)
