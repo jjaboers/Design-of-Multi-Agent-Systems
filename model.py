@@ -44,10 +44,7 @@ class Model(mesa.Model):
         self.data_collector.collect(self)
         self.schedule.step()  # model shuffles the order of the agents, then activates and executes each agent’s step method
         self.update_model_data()
-        # print(self.predators)
-        # print(self.prey)
-        # print(self.food)
-        print(self.n_agents_per_type)
+        # print("step in main:", self.n_agents_per_type)
         
 
     def create_prey(self, num_prey_agents):

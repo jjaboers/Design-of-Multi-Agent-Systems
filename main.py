@@ -5,11 +5,13 @@ import random
 import setup
 
 from model import Model
+from plot_results import plot_populations
 
-model = Model(setup.N_AGENTS, setup.UI_WIDTH, setup.UI_HEIGHT)
-for i in range(20):
+model = Model(setup.N_AGENTS, setup.GRID_WIDTH, setup.GRID_HEIGHT)
+for i in range(200):
     model.step()
-    
+
+plot_populations(model.data_collector)  
 
 # print(model.data_collector.get_model_vars_dataframe())
 # print(model.data_collector.get_agent_vars_dataframe())
