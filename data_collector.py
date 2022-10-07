@@ -33,7 +33,6 @@ class DataCollector(DC):
 		agents = model.schedule.agent_buffer()
 		for agent in agents:
 			if agent.type == "prey":
-
 				prey_dict = agent.evolvable_params.copy()
 				prey_dict["unique_id"] = agent.unique_id
 				if self.evolvable_params_prey.empty:

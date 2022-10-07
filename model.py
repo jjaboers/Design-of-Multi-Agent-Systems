@@ -27,10 +27,17 @@ class Model(mesa.Model):
         self.create_predators(self.num_predator_agents)
         self.create_food(self.num_resources)
 
+        # the schedule alredy has all agents, this might make every
+        # timestep a little bit more efficient
+        self.prey = []
+        self.predators = []
+        self.food = []
+
         # data
         self.data_collector = DataCollector(self)
         self.n_agents_per_type = None
         self.update_model_data()
+        
 
 
     def step(self):
@@ -45,7 +52,7 @@ class Model(mesa.Model):
         for i in range(num_prey_agents):
             a = PreyAgent(self.next_id(), self)
             self.schedule.add(a)
-
+            
             # Add the agent to a random grid cell
             cell = mesa.space.Grid.find_empty(self.grid)
             # self.grid.place_agent(a, (x, y))
@@ -81,14 +88,38 @@ class Model(mesa.Model):
 
 
     def get_n_agents_per_type(self):
-        agent_buffer = self.schedule.agent_buffer()
-        agent_counts = {"prey" : 0, "predator" : 0, "food" : 0}
-        for agent in agent_buffer:
-            agent_counts[agent.get_type()] += 1
-        return agent_counts
+        return self.n_agents_per_type
 
     def update_model_data(self):
-        self.n_agents_per_type = self.get_n_agents_per_type()
+        agent_buffer = self.schedule.agent_buffer()
+        self.n_agents_per_type = {"prey" : 0, "predator" : 0, "food" : 0}
+        # loop twice is more efficient then reallocating in inner loop
+        for agent in agent_buffer:
+            self.n_agents_per_type[agent.get_type()] += 1
+        # Allocate all lists (once for efficiency)
+        self.prey = [None] * self.n_agents_per_type["prey"]
+        self.predators = [None] * self.n_agents_per_type["predator"]
+        self.food = [None] * self.n_agents_per_type["food"]
+        #  update separate agent lists
+        prey_idx, predator_idx, food_idx = 0, 0, 0
+        for agent in agent_buffer:
+            if agent.get_type() == "prey":
+                self.prey[prey_idx] = agent
+                prey_idx += 1
+                continue
+            if agent.get_type() == "predator":
+                self.predators[predator_idx] = agent
+                predator_idx += 1
+                continue
+            if agent.get_type() == "food":
+                self.food[food_idx] = agent 
+                food_idx += 1
+        
+
+
+                
+
+
         
         
 
