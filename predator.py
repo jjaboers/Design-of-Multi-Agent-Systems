@@ -2,7 +2,7 @@ import mesa
 from enum import Enum
 import numpy as np
 from TypedAgent import TypedAgent
-
+import setup
 # searching is roaming while scanning is looking
 class Predator_State(Enum):
         SEARCHING   =   1
@@ -15,11 +15,10 @@ class Predator_State(Enum):
 default_params_predator = {
     "position"                  :   (0, 0)  ,
     "initial_energy"            :   100000  ,
-    "search_radius"             :   100     ,   # meters ??
     "search_angle"              :   250     ,   # degrees TODO probably take out
     "t_food_scan"               :   3       ,
     "alignment"                 :   50      ,
-    "reach"                     :   0.9     ,
+    "reach"                     :   1.0     ,
     "max_speed"                 :   0.12    ,
     "max_neighbour_awareness"   :   50      ,
     "energy_cost"               :   1       ,
@@ -43,18 +42,24 @@ default_params_predator = {
 def get_default_params_predator():
     return default_params_predator.copy()
 
-# To ensure proportions are correct
-def get_params_predator_scaled(scales = [1, 2, 2]):
+# To ensure proportions are correct: Only execute once!
+def scale_params_predator(scales = [1, 2, 2]):
     params = default_params_predator
     params["reproduction_requirement"] = params["max_energy"] / scales[0]
     params["reproduction_cost"] = params["max_energy"] / scales[1]
     params["offspring_energy"] = params["max_energy"] / scales[2]
+    params["alignment"] *= setup.PROPORTION
+    params["max_neighbour_awareness"] *= setup.PROPORTION
+    params["r_repulsion"] *= setup.PROPORTION
+    params["r_attraction"] *= setup.PROPORTION
+    params["attack_distance"] *= setup.PROPORTION
+    params["prey_detection_range"] *= setup.PROPORTION
 
 
 class PredatorAgent(TypedAgent):
     """An agent that is a predator"""
     def __init__(self, unique_id, model, params = default_params_predator):
-        super().__init__(unique_id, model)
+        super().__init__(unique_id, model, params)
         # non-evolvable parameters
 
         # not variable parameters, these are always the same at construction 
@@ -84,14 +89,11 @@ class PredatorAgent(TypedAgent):
         # constants-------------------------------------------------------------
 
         # internal state--------------------------------------------------------
-        # TODO random position
         self.position = params["position"]
         self.energy = params["initial_energy"]
         # internal state--------------------------------------------------------
 
         # perception------------------------------------------------------------
-        # perhaps make evolvable
-        self.search_radius = params["search_radius"]  
         # search angle between food and forward direction see sources
         self.search_angle = params["search_angle"]  
         # foodscan duration
@@ -147,6 +149,7 @@ class PredatorAgent(TypedAgent):
         # TODO check if not better in each states func
         self.t_current_activity += 1
         self.age += 1
+        self.energy -= self.energy_cost
     
     
     # random movement with scanning inbetween
@@ -165,6 +168,7 @@ class PredatorAgent(TypedAgent):
     # with current fleeing system more like charge
     def chase(self):
         pass
+
         # TODO maybe add stamina (evolvable)
         # if target.is_safe() -> search
         # if dist(target, self) < threshold or in same cell
@@ -178,6 +182,8 @@ class PredatorAgent(TypedAgent):
         if self.t_current_activity >= self.search_duration:
             self.set_state(Predator_State.SEARCHING)
             return 
+        # closest 
+        
         # TODO finish 
 
 
