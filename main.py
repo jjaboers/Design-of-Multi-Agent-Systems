@@ -8,7 +8,7 @@ from model import Model
 from plot_results import plot_populations
 
 model = Model(setup.N_AGENTS, setup.GRID_WIDTH, setup.GRID_HEIGHT)
-for i in range(200):
+for i in range(20000000):
     model.step()
 
 plot_populations(model.data_collector)  
