@@ -42,8 +42,9 @@ default_params_prey = {
     "er": 2,  # energy gained per food item TODO should this be in model?
     "t_min": 10,
     "te": 10,  # handling time
-    "nrz"                 :   0,           # number of actual neighbours
-    "di":                   0, # the current direction/facing
+    "nrz": 0, # number of actual neighbours
+    "di": 0, # the current direction/facing, degrees
+    "v_hat": [0, 0], # unit direction vector
 }
 
 evolvable_params_prey = {
@@ -380,32 +381,80 @@ class PreyAgent(TypedAgent):
         self.model.grid.move_agent(self, new_position)
         self.set_position(new_position)
 
-        # TODO how to get neighbours, but only of class prey, current idea isn't efficent
-        # count_neighbours = 0
-        # for prey in range(len(self.model.prey)):
-        #     prey_distance = spatial.distance.euclidean(self.position, prey.get_position())
-        #     if prey_distance < self.zr:
-        #         count_neighbours += 1
-        # if count_neighbours <= self.nr:
-        #     d = ...
-        # else:
-        #     d = ...
-        # if ...:
-        #     v = d
-        # else:
-        #     ...
-        # if random.random() < 0.5:
-        #     t = - self.am
-        # else:
-        #     t = self.am
-        # turn ...
+        self.current_action_time_remaining = self.dm * self.tm
 
-        # possible_steps = self.model.grid.get_neighborhood(
-        #     self.pos,
-        #     moore=True,
-        #     include_center=False)
-        # new_position = self.random.choice(possible_steps)
-        # self.model.grid.move_agent(self, new_position)
+    def new_move(self):
+        # TODO how to get neighbours, but only of class prey, current idea isn't efficent
+        # Grouping params
+        # get number of actual neighbors within zones
+        count_neighbours_repulsed = 0
+        for x in self.model.grid.get_neighbors(self.get_position(), radius=self.zr):
+            if x.type == "prey":
+                count_neighbours_repulsed += 1
+        nrz = count_neighbours_repulsed # actual neighbours in repulsion zone
+
+        count_neighbours = 0
+        for x in self.model.grid.get_neighbors(self.get_position(), radius=self.zl):
+            if x.type == "prey":
+                count_neighbours += 1
+        nl = count_neighbours - count_neighbours_repulsed # actual neighbours in alignment zone
+
+        count_neighbours = 0
+        for x in self.model.grid.get_neighbors(self.get_position(), radius=self.za):
+            if x.type == "prey":
+                count_neighbours += 1
+        na = count_neighbours - count_neighbours_repulsed # actual neighbours in alignment and attraction zone
+
+        # Grouping
+        if nrz >= self.nr:
+            sum = 0
+            for x in self.model.grid.get_neighbors(self.get_position(), radius=self.zr):
+                if x.type == "prey":
+                    sum += (self.get_position() - x.get_position()) / abs(self.get_position() - x.get_position())
+            d_hat = - sum / abs(sum)
+
+        else:
+            sum1 = 0
+            for x in self.model.grid.get_neighbors(self.get_position(), radius=self.za):
+                if x.type == "prey":
+                    sum1 += (self.get_position() - x.get_position()) / abs(self.get_position() - x.get_position())
+            sum2 = 0
+            for x in self.model.grid.get_neighbors(self.get_position(), radius=self.zl):
+                if x.type == "prey":
+                    sum2 += x.v_hat
+            d_hat = (sum1 + sum2) / abs(sum1 + sum2)
+        if abs(self.di - d) <= self.ar or abs(self.di - d) <= self.aa:
+            self.v_hat = d_hat
+        else:
+            vx = self.v_hat[1]
+            vy = self.v_hat[2]
+            # TODO it says "else turn aR or aA" but I'm not sure how to know which, so currently random?
+            if random.random() < 0.5:
+                a = self.ar
+            else:
+                a = self.aa
+            vx = vx * math.cos(a) - vy * math.sin(a)
+            vy = vx * math.cos(a) + vy * math.sin(a)
+            self.v_hat = [vx, vy]
+
+        # random turn of a_M
+        if random.random() < 0.5:
+            t = - self.am
+        else:
+            t = self.am
+        vx = self.v_hat[1]
+        vy = self.v_hat[2]
+        vx = vx * math.cos(t) - vy * math.sin(t)
+        vy = vx * math.cos(t) + vy * math.sin(t)
+        self.v_hat = [vx, vy]
+
+        # Get new position and make sure it is on the grid
+        new_position = self.dm * self.v_hat + self.position
+
+        # Set new pos
+        self.position = new_position
+
+        # Duration
         self.current_action_time_remaining = self.dm * self.tm
 
     def check_group(self):
