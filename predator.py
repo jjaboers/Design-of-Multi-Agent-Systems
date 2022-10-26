@@ -116,12 +116,18 @@ class PredatorAgent(TypedAgent):
         if self.t_current_activity >= self.search_duration:
             self.set_state(Predator_State.SCANNING)
             return
-        
-        possible_steps = self.model.grid.get_neighborhood(
-            self.position,
-            moore=True,
-            include_center=False)
-        new_position = self.random.choice(possible_steps)
+
+        # possible_steps =( (self.position[0] + np.random.random() * self.max_speed).round(decimals=2),
+        #                   (self.position[1] + np.random.random() * self.max_speed).round(decimals=2) )
+        # print(possible_steps)
+            # self.model.grid.get_neighborhood(
+            # self.position,
+            # moore=True,
+            # include_center=False)
+        # new_position = self.random.choice(possible_steps)
+        new_position = ( (self.position[0] + np.random.random() * self.max_speed).round(decimals=2),
+                          (self.position[1] + np.random.random() * self.max_speed).round(decimals=2) )
+        print(new_position)
         self.move(new_position)
         
     # with current fleeing system more like charge
@@ -179,6 +185,7 @@ class PredatorAgent(TypedAgent):
     
     # TODO implement repulsion etc
     def move(self, new_position):
+        print(new_position)
         self.model.grid.move_agent(self, new_position)
         self.set_position(new_position)
 

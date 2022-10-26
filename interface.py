@@ -1,6 +1,8 @@
 import mesa
 from model import Model
 import setup
+from SimpleContinuousModule import SimpleCanvas
+
 
 def agent_portrayal(agent):
     portrayal = {
@@ -20,10 +22,15 @@ def agent_portrayal(agent):
 
     return portrayal
 
+
+grid = SimpleCanvas(agent_portrayal, 500, 500)
+
 # TODO not sure, how to test ?
-grid = mesa.visualization.CanvasGrid(agent_portrayal, setup.GRID_WIDTH, setup.GRID_HEIGHT, setup.UI_WIDTH, setup.UI_HEIGHT)
+# grid = mesa.visualization.CanvasGrid(agent_portrayal, setup.GRID_WIDTH, setup.GRID_HEIGHT, setup.UI_WIDTH, setup.UI_HEIGHT)
 server = mesa.visualization.ModularServer(
     Model, [grid], "Prey-Predator Model", {"N": setup.N_AGENTS, "width": setup.GRID_WIDTH, "height": setup.GRID_HEIGHT}
 )
+
+
 server.port = 8521  # The default
 server.launch()
