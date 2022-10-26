@@ -32,7 +32,7 @@ default_params_prey = {
     "h": 5,  # half-max distance detect predator
     "N": 5,  # scaling for predator detection
     "em": 1,  # metabolism
-    "max_energy": 100000,  # called eM in paper
+    "max_energy": 100000,  # called EM in paper - birth requirement = max energy
     "death_rate": 0.1,
     "max_age": 10512000,  # 60 * 24 * 365 * 20: 20 years expressed in minutes
     "mutation_rate": 0.05,
@@ -243,7 +243,7 @@ class PreyAgent(TypedAgent):
                 self.waiting_time = 10
             if getattr(self.model, 'num_prey_agents') > 10 and self.energy >= self.max_energy:
                 self.reproduce()
-            else:
+            elif getattr(self.model, 'num_prey_agents') < 10:
                 self.force_birth()
 
         # TODO add reproduction and death? (page 9 paper)
@@ -587,7 +587,7 @@ class PreyAgent(TypedAgent):
         # n_children = int((len(neighbours)/2))
         # self.model.create_prey(n_children)
         # energy changes due to birth
-        self.energy = self.energy - self.em / 2
+        self.energy = self.energy - self.max_energy / 2
         #print("self energy step1 ", self.energy)
         # TODO params is the baseclass name maybe use evolvable
         child_params = mutate(deepcopy(self.evolvable_params))
