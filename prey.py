@@ -237,13 +237,17 @@ class PreyAgent(TypedAgent):
         # Waiting time (after fleeing from predator)
         if self.is_safe == True:
             self.waiting_time = self.waiting_time - 1
+            # print("I'm safe bestie")
+            # print(getattr(self.model, 'num_prey_agents'))
             if self.waiting_time == 0:
                 self.state = Prey_State.NOTHING
                 # reset waiting time
                 self.waiting_time = 10
             if getattr(self.model, 'num_prey_agents') > 10 and self.energy >= self.max_energy:
+                # print("I can reproduce")
                 self.reproduce()
             elif getattr(self.model, 'num_prey_agents') < 10:
+                # print("Gotta force birth")
                 self.force_birth()
 
         # TODO add reproduction and death? (page 9 paper)
@@ -280,7 +284,8 @@ class PreyAgent(TypedAgent):
             self.move_to_food(self.food_target)
         elif self.state == Prey_State.EATING:
             self.energy += self.er
-            #print("self energy step eating ", self.energy)
+            self.eat(self.food_target)
+            # print("self energy step eating ", self.energy)
             self.food_target = None
         elif self.state == Prey_State.SCANNING:
             # print("SCAN1")
@@ -549,13 +554,12 @@ class PreyAgent(TypedAgent):
         self.new_move()
 
     def eat(self, food_item):
+        print("Nom")
         # resource items that are eaten disappear immediately (no half eating possible)
         self.model.remove_agents_food.append(food_item)
         # remove the agent from the grid, immediately to prevent it being eaten twice
-        food_item.remove_agent()
+        self.model.grid.remove_agent(food_item)
         self.current_action_time_remaining = self.current_action_time_remaining - self.te
-
-
 
     def scan(self):
         for neighbour in self.model.grid.get_neighbors(self.position, moore=True, include_center=False,
@@ -598,20 +602,37 @@ class PreyAgent(TypedAgent):
         # TODO offspring inherit all evolvable parameters + mutate, maybe make functions inherit() and evolve()
 
 
+    # def force_birth(self):
+    #     n = 5
+    #     #print("self energy step force birth ", self.energy)
+    #     summed_energy_neighbours = 0
+    #     # for agent in self.model.grid.get_neighbors((setup.GRID_WIDTH, setup.GRID_HEIGHT),
+    #     #                                             moore=True, include_center=True,
+    #     #                                             radius=self.max_neighbour_awareness):
+    #     #     print("agent energy ", agent.energy)
+    #     #     summed_energy_neighbours += agent.energy
+    #     # summed_energy_neighbours = max(summed_energy_neighbours, 1)
+    #     # prob_to_birth = math.pow(self.energy / summed_energy_neighbours, n)
+    #     # print(" prob to birth ", str(prob_to_birth))
+    #     # if np.random.random() > prob_to_birth:
+    #     if np.random.random() > 0.5:
+    #         self.reproduce()
+
+
     def force_birth(self):
         n = 5
-        #print("self energy step force birth ", self.energy)
+        # print("self energy step force birth ", self.energy)
         summed_energy_neighbours = 0
-        # for agent in self.model.grid.get_neighbors((setup.GRID_WIDTH, setup.GRID_HEIGHT),
-        #                                             moore=True, include_center=True,
-        #                                             radius=self.max_neighbour_awareness):
-        #     print("agent energy ", agent.energy)
-        #     summed_energy_neighbours += agent.energy
-        # summed_energy_neighbours = max(summed_energy_neighbours, 1)
-        # prob_to_birth = math.pow(self.energy / summed_energy_neighbours, n)
+        for agent in self.model.grid.get_neighbors((int(setup.GRID_WIDTH/2), int(setup.GRID_HEIGHT/2)),
+                                                    moore=True, include_center=True,
+                                                    radius=setup.GRID_WIDTH+1):
+            if agent.type == "prey":
+                # print("agent energy ", agent.energy)
+                summed_energy_neighbours += agent.energy
+        summed_energy_neighbours = max(summed_energy_neighbours, 1)
+        prob_to_birth = math.pow(self.energy / summed_energy_neighbours, n)
         # print(" prob to birth ", str(prob_to_birth))
-        # if np.random.random() > prob_to_birth:
-        if np.random.random() > 0.5:
+        if np.random.random() > prob_to_birth:
             self.reproduce()
 
     def set_energy(self, new_energy):

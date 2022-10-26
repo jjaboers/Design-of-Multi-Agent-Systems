@@ -58,7 +58,7 @@ class Model(mesa.Model):
             # self.grid.place_agent(a, (x, y))
             mesa.space.Grid.place_agent(self.grid, a, cell)
             a.set_position(cell)
-            self.num_prey_agents += 1
+            # self.num_prey_agents += 1
 
     def create_new_prey(self, evolv_params):
         a = PreyAgent(self.next_id(), self, evolvable_params=evolv_params)
