@@ -155,7 +155,7 @@ class PreyAgent(TypedAgent):
         self.zl = int(default_params["zl"])
         self.dr = int(default_params["dr"] * setup.PROPORTION)
         self.max_speed = int(default_params["max_speed"] * setup.PROPORTION)
-        self.max_neighbour_awareness = int(default_params["max_neighbour_awareness"] * setup.PROPORTION)
+        self.max_neighbour_awareness = int(default_params["max_neighbour_awareness"] * setup.PROPORTION) if int(default_params["max_neighbour_awareness"] * setup.PROPORTION) > 1 else 1
         self.h = int(default_params["h"]) if int(default_params["h"]) > 5 else 5
         self.N = default_params["N"]
         self.em = default_params["em"]
@@ -229,6 +229,8 @@ class PreyAgent(TypedAgent):
 
     # STEP FUNCTION
     def step(self):
+        #print("STATE")
+        #print(self.state)
         self.age = self.age + 1
 
         self.energy = self.energy - self.em
@@ -278,11 +280,13 @@ class PreyAgent(TypedAgent):
             self.new_move()
         elif self.state == Prey_State.FOODSCAN:
             self.food_target = self.foodscan()
+            print(self.food_target)
             if self.food_target == None:
                 self.new_move()
         elif self.state == Prey_State.MOVETOFOOD:
             self.move_to_food(self.food_target)
         elif self.state == Prey_State.EATING:
+            print("am eating")
             self.energy += self.er
             self.eat(self.food_target)
             # print("self energy step eating ", self.energy)
@@ -307,7 +311,7 @@ class PreyAgent(TypedAgent):
                 # print("else pv is ", self.pv)
                 if self.food_target is not None:
                     # print("FOOD TARGET")
-                    if self.distance(self.food_target) < self.dr:
+                    if self.distance(self.food_target.position) < self.dr:
                         self.state = Prey_State.EATING
                         # print(self.state)
                     else:
@@ -485,7 +489,7 @@ class PreyAgent(TypedAgent):
         new_position_rounded = (int(new_position[0]), int(self.position[1]))
         # Set new pos
         self.model.grid.move_agent(self, new_position_rounded)
-        self.position = tuple(new_position)
+        self.position = (tuple(new_position_rounded))
         # Duration
         self.current_action_time_remaining = self.dm * self.tm
 
@@ -502,14 +506,15 @@ class PreyAgent(TypedAgent):
                     self.new_move()
 
     def distance(self, otherpos):
-        # print(self.pos , " is th eposition ")
+        print(self.pos, otherpos, " is the position ")
         # (distance_x, distance_y) = (self.pos[0] - otherpos[0], self.pos[1] - otherpos[1])
         dist = np.sum(np.square(np.array((self.pos)), np.array((otherpos))))
-        # print("distance is ", np.sqrt(dist))
+        print("distance is ", np.sqrt(dist))
         return np.sqrt(dist)
 
     # TODO: should this return chosen fooditem or set a field to this fooditem
     def foodscan(self):
+        print("in foodscan")
         # chosenitem = self.model.fooditems[0]
 
         # for neighbour in self.model.grid.get_neighbors(self.position, moore=True, include_center=False,
@@ -529,10 +534,12 @@ class PreyAgent(TypedAgent):
 
         chosenitems = self.model.grid.get_neighbors(self.position, moore=True, include_center=False,
                                                       radius=self.max_neighbour_awareness)
-        chosenitem = None
+        print("max neigh", self.max_neighbour_awareness)
+        chosenitem_ = None
         for chosenitem in chosenitems:
+            print(chosenitem)
             if chosenitem.type == "food":
-                chosenitem = chosenitem
+                chosenitem_ = chosenitem
                 break
         # find all fooditems in range
         # for fooditem in range(len(self.model.fooditems)):
@@ -543,13 +550,13 @@ class PreyAgent(TypedAgent):
         #         if self.distance(fooditem.pos) < self.distance(chosenitem.pos):
         #             chosenitem = fooditem
 
-        return chosenitem
+        return chosenitem_
 
     # TODO related to foodscan, should this have a fooditem as argument or should it move to variable "self.closestfood" or st
     def move_to_food(self, food_item):
         new_position = food_item.position - \
                        (self.dr * abs(food_item.position - self.position)) / 2
-        self.position = new_position
+        self.position = int(new_position)
         self.current_action_time_remaining = self.distance(new_position)
         self.new_move()
 
@@ -562,6 +569,7 @@ class PreyAgent(TypedAgent):
         self.current_action_time_remaining = self.current_action_time_remaining - self.te
 
     def scan(self):
+        print(self.position)
         for neighbour in self.model.grid.get_neighbors(self.position, moore=True, include_center=False,
                                                        radius=self.max_neighbour_awareness):
             if neighbour.get_type() == "predator":
