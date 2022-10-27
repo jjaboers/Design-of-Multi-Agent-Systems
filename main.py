@@ -3,15 +3,32 @@ import matplotlib.pyplot as plt
 import numpy as np
 import random
 import setup
+import pandas as pd
 
 from model import Model
+from model_params import model_params_5, model_params_7, model_params_9
+from data_collector import model_reporters
 from plot_results import plot_populations
+from mesa.batchrunner import FixedBatchRunner
 
-model = Model(setup.N_AGENTS, setup.GRID_WIDTH, setup.GRID_HEIGHT)
-for i in range(20000000):
-    model.step()
+batch_params = [model_params_5, model_params_7, model_params_9]
 
-plot_populations(model.data_collector)  
+batch_runner = FixedBatchRunner(
+    Model, batch_params, model_reporters=model_reporters)
+
+
+result_batch_run = batch_runner.run_all()
+print("----- you are here -----")
+print(result_batch_run)
+
+results_df = pd.DataFrame(result_batch_run)
+print(results_df.keys())
+
+# model = Model(setup.N_AGENTS, setup.GRID_WIDTH, setup.GRID_HEIGHT)
+# for i in range(20000000):
+#     model.step()
+
+# plot_populations(model.data_collector)
 
 # print(model.data_collector.get_model_vars_dataframe())
 # print(model.data_collector.get_agent_vars_dataframe())
@@ -19,14 +36,14 @@ plot_populations(model.data_collector)
 # print(model.data_collector.evolvable_params_prey)
 
 
-agent_counts = np.zeros((model.grid.width, model.grid.height))
-for cell in model.grid.coord_iter():
-    cell_content, x, y = cell
-    agent_count = len(cell_content)
-    agent_counts[x][y] = agent_count
-plt.imshow(agent_counts, interpolation="nearest")
-plt.colorbar()
-plt.show()
+# agent_counts = np.zeros((model.grid.width, model.grid.height))
+# for cell in model.grid.coord_iter():
+#     cell_content, x, y = cell
+#     agent_count = len(cell_content)
+#     agent_counts[x][y] = agent_count
+# plt.imshow(agent_counts, interpolation="nearest")
+# plt.colorbar()
+# plt.show()
 # NOTE from tutorial:
 # if __name__ == '__main__':
 
