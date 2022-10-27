@@ -229,8 +229,8 @@ class PreyAgent(TypedAgent):
 
     # STEP FUNCTION
     def step(self):
-        #print("STATE")
-        #print(self.state)
+        print("STATE")
+        print(self.state)
         self.age = self.age + 1
 
         self.energy = self.energy - self.em
@@ -284,6 +284,7 @@ class PreyAgent(TypedAgent):
             if self.food_target == None:
                 self.new_move()
         elif self.state == Prey_State.MOVETOFOOD:
+            print("trying to move to food")
             self.move_to_food(self.food_target)
         elif self.state == Prey_State.EATING:
             print("am eating")
@@ -554,9 +555,14 @@ class PreyAgent(TypedAgent):
 
     # TODO related to foodscan, should this have a fooditem as argument or should it move to variable "self.closestfood" or st
     def move_to_food(self, food_item):
-        new_position = food_item.position - \
-                       (self.dr * abs(food_item.position - self.position)) / 2
-        self.position = int(new_position)
+        # new_position = food_item.position - \
+                       # (self.dr * abs(food_item.position - self.position)) / 2
+        # dif = (abs(food_item.position[0] - self.position[0] / 2), abs(food_item.position[1] - self.position[1] / 2))
+        # new_position = food_item.position - (self.dr * dif)
+        x = food_item.position[0] - self.dr * abs(food_item.position[0] - self.position[0] / 2)
+        y = food_item.position[1] - self.dr * abs(food_item.position[1] - self.position[1] / 2)
+        new_position = (int(x), int(y))
+        self.position = new_position
         self.current_action_time_remaining = self.distance(new_position)
         self.new_move()
 
