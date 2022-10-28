@@ -4,34 +4,8 @@ import numpy.random as random
 SCALED_FLAG = False
 
 # this way all params can be manipulated in higher levels
-default_params_predator_5 = {
-    "position":   (0, 0),
-    "initial_energy":   100000,
-    "search_angle":   250,   # degrees TODO probably take out
-    "t_food_scan":   3,
-    "alignment":   50,
-    "reach":   1.0,
-    "max_speed":   2,   # TODO find right val
-    "max_neighbour_awareness":   50,
-    "energy_cost":   1,
-    "max_energy":   100000,
-    "death_rate":   0.1,
-    "max_age":   10512000,   # 60*24*365*20 = 20years in mins
-    "mutation_rate":   0.05,
-    "reproduction_requirement":   100000,   # max energy
-    "reproduction_cost":   50000,   # half of max energy (paper)
-    "offspring_energy":   50000,   # half of max energy (paper)
-    "r_repulsion":   20,
-    "r_attraction":   30,
-    "max_angle_attraction":   72,
-    "min_angle_attraction":   72,
-    "attack_distance":   5,   # paper: 5, 7, 9
-    "prey_detection_range":   50,   # not sure because angle and r
-    "attack_speed":   11.1,   # (m/s) prey paper, check wolf paper
-    "search_duration":   3
-}
 
-default_params_predator_7 = {
+default_params_predator = {
     "position":   (0, 0),
     "initial_energy":   100000,
     "search_angle":   250,   # degrees TODO probably take out
@@ -52,34 +26,7 @@ default_params_predator_7 = {
     "r_attraction":   30,
     "max_angle_attraction":   72,
     "min_angle_attraction":   72,
-    "attack_distance":   7,   # paper: 5, 7, 9
-    "prey_detection_range":   50,   # not sure because angle and r
-    "attack_speed":   11.1,   # (m/s) prey paper, check wolf paper
-    "search_duration":   3
-}
-
-default_params_predator_9 = {
-    "position":   (0, 0),
-    "initial_energy":   100000,
-    "search_angle":   250,   # degrees TODO probably take out
-    "t_food_scan":   3,
-    "alignment":   50,
-    "reach":   1.0,
-    "max_speed":   2,   # TODO find right val
-    "max_neighbour_awareness":   50,
-    "energy_cost":   1,
-    "max_energy":   100000,
-    "death_rate":   0.1,
-    "max_age":   10512000,   # 60*24*365*20 = 20years in mins
-    "mutation_rate":   0.05,
-    "reproduction_requirement":   100000,   # max energy
-    "reproduction_cost":   50000,   # half of max energy (paper)
-    "offspring_energy":   50000,   # half of max energy (paper)
-    "r_repulsion":   20,
-    "r_attraction":   30,
-    "max_angle_attraction":   72,
-    "min_angle_attraction":   72,
-    "attack_distance":   9,   # paper: 5, 7, 9
+    # "attack_distance":   9,   # paper: 5, 7, 9
     "prey_detection_range":   50,   # not sure because angle and r
     "attack_speed":   11.1,   # (m/s) prey paper, check wolf paper
     "search_duration":   3

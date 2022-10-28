@@ -20,8 +20,8 @@ class Predator_State(Enum):
 class PredatorAgent(TypedAgent):
     """An agent that is a predator"""
 
-    def __init__(self, unique_id, model,
-                 params):
+    def __init__(self, unique_id, model, attack_distance,
+                 params=predator_params.default_params_predator, evolve=False):
         super().__init__(unique_id, model, params)
         # non-evolvable parameters
 
@@ -84,7 +84,7 @@ class PredatorAgent(TypedAgent):
         # evolvable parameters--------------------------------------------------
 
         # predator specific parameters------------------------------------------
-        self.attack_distance = params["attack_distance"]
+        self.attack_distance = attack_distance
         self.prey_detection_range = params["prey_detection_range"]
         self.attack_speed = params["attack_speed"]
         # predator specific parameters------------------------------------------

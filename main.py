@@ -6,12 +6,13 @@ import setup
 import pandas as pd
 
 from model import Model
-from model_params import model_params_5, model_params_7, model_params_9
+from model_params import model_params_no_evolve_5, model_params_no_evolve_7, model_params_no_evolve_9, model_params_evolve_5, model_params_evolve_7, model_params_evolve_9
 from data_collector import model_reporters
 from plot_results import plot_populations
 from mesa.batchrunner import FixedBatchRunner
 
-batch_params = [model_params_5, model_params_7, model_params_9]
+batch_params = [model_params_no_evolve_5, model_params_no_evolve_7, model_params_no_evolve_9,
+                model_params_evolve_5, model_params_evolve_7, model_params_evolve_9]
 
 batch_runner = FixedBatchRunner(
     Model, batch_params, max_steps=10, model_reporters=model_reporters)

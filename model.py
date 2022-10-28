@@ -12,13 +12,12 @@ class Model(mesa.Model):
     """A model with some number of agents."""
     # grid = None
 
-    def __init__(self, N, width, height, dict_pred):
+    def __init__(self, N, width, height, attack_distance, evolve):
         super().__init__()
         # agent counts
         self.num_prey_agents = int(2*N/3)
         self.num_predator_agents = int(N/3)
         self.num_resources = width * height * 0.535  # factor found in paper
-        self.dict_pred = dict_pred
 
         # init environment
         self.grid = mesa.space.ContinuousSpace(width, height, True)
@@ -26,7 +25,8 @@ class Model(mesa.Model):
 
         # init agents
         self.create_prey(self.num_prey_agents)
-        self.create_predators(self.num_predator_agents)
+        self.create_predators(self.num_predator_agents,
+                              attack_distance, evolve)
         self.create_food(self.num_resources)
 
         # the schedule alredy has all agents, this might make every
@@ -80,10 +80,11 @@ class Model(mesa.Model):
         a.set_position(pos)
         self.num_prey_agents += 1
 
-    def create_predators(self, num_predator_agents):
+    def create_predators(self, num_predator_agents, attack_distance, evolve):
         # Create predator agents
         for i in range(self.num_prey_agents+1, self.num_prey_agents + num_predator_agents):
-            a = PredatorAgent(self.next_id(), self, self.dict_pred)
+            a = PredatorAgent(self.next_id(), self,
+                              attack_distance, evolve=evolve)
             self.schedule.add(a)
             # Add the agent to a random grid cell
             x = self.random.random() * self.grid.x_max
