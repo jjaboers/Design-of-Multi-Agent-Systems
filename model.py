@@ -12,15 +12,13 @@ class Model(mesa.Model):
     """A model with some number of agents."""
     # grid = None
 
-    def __init__(self, N, width, height, dict_pred, dict_prey_evolvable, dict_prey_nonevolvable):
+    def __init__(self, N, width, height, dict_pred):
         super().__init__()
         # agent counts
         self.num_prey_agents = int(2*N/3)
         self.num_predator_agents = int(N/3)
         self.num_resources = width * height * 0.535  # factor found in paper
         self.dict_pred = dict_pred
-        self.dict_prey_evolvable = dict_prey_evolvable
-        self.dict_prey_nonevolvable = dict_prey_nonevolvable
 
         # init environment
         self.grid = mesa.space.ContinuousSpace(width, height, True)
@@ -53,8 +51,7 @@ class Model(mesa.Model):
     def create_prey(self, num_prey_agents):
         # Create prey agents
         for i in range(num_prey_agents):
-            a = PreyAgent(self.next_id(), self,
-                          self.dict_prey_evolvable, self.dict_prey_nonevolvable)
+            a = PreyAgent(self.next_id(), self)
             self.schedule.add(a)
 
             # Add the agent to a random grid cell
@@ -69,8 +66,7 @@ class Model(mesa.Model):
             self.num_prey_agents += 1
 
     def create_new_prey(self, evolv_params):
-        a = PreyAgent(self.next_id(), self,
-                      self.dict_prey_evolvable, self.dict_prey_nonevolvable)
+        a = PreyAgent(self.next_id(), self, evolvable_params=evolv_params)
         a.set_energy(a.max_energy / 2)
         self.schedule.add(a)
 
