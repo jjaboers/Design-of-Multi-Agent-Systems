@@ -14,11 +14,10 @@ from mesa.batchrunner import FixedBatchRunner
 batch_params = [model_params_5, model_params_7, model_params_9]
 
 batch_runner = FixedBatchRunner(
-    Model, batch_params, model_reporters=model_reporters)
-
+    Model, batch_params, max_steps=10, model_reporters=model_reporters)
 
 result_batch_run = batch_runner.run_all()
-print("----- you are here -----")
+
 print(result_batch_run)
 
 results_df = pd.DataFrame(result_batch_run)
