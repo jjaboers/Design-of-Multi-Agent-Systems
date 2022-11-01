@@ -89,7 +89,7 @@ class PreyAgent(TypedAgent):
         self.current_action_time_remaining = 0
         self.detected_predator = False  # keep it like this or make it Boolean ?
         self.age = 100
-        self.energy = 100000
+        self.energy = 100000 * setup.PROPORTION
         self.min_energy = 0
         self.default_params = default_params
         self.evolvable_params = evolvable_params
@@ -106,9 +106,9 @@ class PreyAgent(TypedAgent):
         self.h = default_params["h"] if default_params["h"] > 5 else 5
         self.N = default_params["N"]
         self.em = default_params["em"]
-        self.max_energy = default_params["max_energy"]
+        self.max_energy = default_params["max_energy"] * setup.PROPORTION
         self.death_rate = default_params["death_rate"]
-        self.max_age = default_params["max_age"]
+        self.max_age = default_params["max_age"] * setup.PROPORTION
         self.mutation_rate = default_params["mutation_rate"]
         self.is_safe = default_params["is_safe"]
         self.waiting_time = default_params["waiting_time"]
@@ -196,12 +196,21 @@ class PreyAgent(TypedAgent):
 
     # STEP FUNCTION
     def step(self):
+        print("ENERGY ", self.energy)
         print("STATE")
+
+        print("food  target ", self.food_target)
         print(self.state)
         self.age = self.age + 1
 
         self.energy = self.energy - self.em
         #print("self energy step1 ", self.energy)
+
+        if self.energy <= self.min_energy:
+            self.state = Prey_State.DEAD
+
+        if self.state == Prey_State.DEAD:
+            self.die()
 
         # Waiting time (after fleeing from predator)
         if self.is_safe == True:
@@ -279,7 +288,9 @@ class PreyAgent(TypedAgent):
                 # print("else pv is ", self.pv)
                 if self.food_target is not None:
                     # print("FOOD TARGET")
+                    print("state is eating ", self.food_target.position, " > ", self.dr)
                     if self.distance(self.food_target.position) < self.dr:
+                        print("state is eating ", self.food_target.position, " < ", self.dr)
                         self.state = Prey_State.EATING
                         # print(self.state)
                     else:
@@ -540,7 +551,7 @@ class PreyAgent(TypedAgent):
         new_position = (x, y)
         self.position = new_position
         self.current_action_time_remaining = self.distance(new_position)
-        self.new_move()
+        # self.new_move()
 
     def eat(self, food_item):
         print("Nom")
@@ -631,3 +642,7 @@ class PreyAgent(TypedAgent):
 
     def is_alive(self):
         return self.state != Prey_State.DEAD
+
+    def die(self):
+        super().die()
+        self.set_state(Prey_State.DEAD)

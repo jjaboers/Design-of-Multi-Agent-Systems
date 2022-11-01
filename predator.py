@@ -199,9 +199,9 @@ class PredatorAgent(TypedAgent):
         return self.state != Predator_State.DEAD
 
     # asexual reproduction
-
-    def reproduce(self):
-        pass
+    #
+    # def reproduce(self):
+    #     pass
 
     def die(self):
         super().die()
