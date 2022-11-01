@@ -172,6 +172,8 @@ class PredatorAgent(TypedAgent):
 
     def eat(self):
         self.energy += self.target.get_energy()
+        print("target is ", self.target)
+        print(len(self.target))
         if self.energy < self.max_energy:
             self.energy = self.max_energy
         self.target.set_state(Prey_State.DEAD)

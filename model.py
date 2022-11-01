@@ -43,6 +43,8 @@ class Model(mesa.Model):
     def step(self):
         """Advance the model by one step."""
         self.data_collector.collect(self)
+        print("preys :" , self.num_prey_agents)
+
         # model shuffles the order of the agents, then activates and executes each agent’s step method
         self.schedule.step()
         self.update_model_data()
@@ -148,10 +150,12 @@ class Model(mesa.Model):
             agent_list = self.food
 
         ret_agent = None
-        d_min = 10000000
+        d_min = 50
         for agent in agent_list:
             dist = distance.euclidean(pos, agent.get_position())
             if dist <= d_min and dist <= range:
                 ret_agent = agent
+                #  TODO: whats the purpose of this subtraction that's not returned into any variable???
                 d_min - dist
+                break
         return ret_agent

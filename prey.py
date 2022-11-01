@@ -88,7 +88,7 @@ class PreyAgent(TypedAgent):
         self.previous_state = Prey_State.NOTHING
         self.current_action_time_remaining = 0
         self.detected_predator = False  # keep it like this or make it Boolean ?
-        self.age = 100
+        self.age = 10000 * setup.PROPORTION
         self.energy = 100000 * setup.PROPORTION
         self.min_energy = 0
         self.default_params = default_params
@@ -100,9 +100,10 @@ class PreyAgent(TypedAgent):
         self.zl = default_params["zl"]
         self.dr = default_params["dr"] * setup.PROPORTION
         self.max_speed = default_params["max_speed"] * setup.PROPORTION
-        self.max_neighbour_awareness = default_params["max_neighbour_awareness"] * \
-            setup.PROPORTION if default_params["max_neighbour_awareness"] * \
-            setup.PROPORTION > 1 else 1
+        self.max_neighbour_awareness = default_params["max_neighbour_awareness"]
+        # default_params["max_neighbour_awareness"] * \
+            # setup.PROPORTION if default_params["max_neighbour_awareness"] * \
+            # setup.PROPORTION > 1 else 1
         self.h = default_params["h"] if default_params["h"] > 5 else 5
         self.N = default_params["N"]
         self.em = default_params["em"]
@@ -199,6 +200,8 @@ class PreyAgent(TypedAgent):
         print("ENERGY ", self.energy)
         print("STATE")
 
+        print("max_neighbour_awareness ", self.max_neighbour_awareness)
+
         print("food  target ", self.food_target)
         print(self.state)
         self.age = self.age + 1
@@ -207,6 +210,11 @@ class PreyAgent(TypedAgent):
         #print("self energy step1 ", self.energy)
 
         if self.energy <= self.min_energy:
+            print("min energy ", self.energy)
+            self.state = Prey_State.DEAD
+
+        if self.age <= 0:
+            print("age ", self.max_age)
             self.state = Prey_State.DEAD
 
         if self.state == Prey_State.DEAD:
@@ -645,4 +653,8 @@ class PreyAgent(TypedAgent):
 
     def die(self):
         super().die()
-        self.set_state(Prey_State.DEAD)
+        print("DEAD")
+        self.state = Prey_State.DEAD
+        self.model.num_prey_agents -= 1
+        self.model.prey
+
