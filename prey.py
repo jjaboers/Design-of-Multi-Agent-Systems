@@ -27,6 +27,7 @@ class Prey_State(Enum):
 
 
 def trunc_normal(lower, upper, sd, mu):
+    mu = upper - lower
     r = truncnorm.rvs(
         (lower - mu) / sd, (upper - mu) / sd, loc=mu, scale=sd, size=1)
     return r
@@ -88,8 +89,8 @@ class PreyAgent(TypedAgent):
         self.previous_state = Prey_State.NOTHING
         self.current_action_time_remaining = 0
         self.detected_predator = False  # keep it like this or make it Boolean ?
-        self.age = 100
-        self.energy = 100000
+        self.age = 0 # Was 100
+        self.energy = 10 #Was 100000
         self.min_energy = 0
         self.default_params = default_params
         self.evolvable_params = evolvable_params
@@ -164,19 +165,6 @@ class PreyAgent(TypedAgent):
         self.neighbours = []
         # self.set_initial_evolvable_parameters()
 
-    # SET EVOLVABLE PARAMS
-
-    # def set_repulsion_zone(self, repulsion):
-    #     self.zr = repulsion
-
-    # def set_attraction_zone(self, attraction):
-    #     self.za = attraction
-
-    # def set_repulsion_angle(self, repulsion):
-    #     self.ar = repulsion
-
-    # def set_attraction_angle(self, attraction):
-    #     self.aa = attraction
 
     # sets the initial values of evolvable parameters of the prey agent
     # TODO set all the parameters, currently only grouping is done
@@ -198,6 +186,7 @@ class PreyAgent(TypedAgent):
     def step(self):
         print("STATE")
         print(self.state)
+        # print("time remaining:", self.current_action_time_remaining)
         self.age = self.age + 1
 
         self.energy = self.energy - self.em
@@ -223,7 +212,7 @@ class PreyAgent(TypedAgent):
         # TODO read closely 1.7.1, should this be done in model? ("model updating schedule")
 
         # Check if current action is over
-        if self.current_action_time_remaining == 0:
+        if self.current_action_time_remaining < 0:
             self.previous_state = self.state
             self.state = Prey_State.NOTHING
             self.current_action_time_remaining = self.waiting_time
@@ -247,18 +236,24 @@ class PreyAgent(TypedAgent):
             self.new_move()
         elif self.state == Prey_State.FOODSCAN:
             self.food_target = self.foodscan()
-            print(self.food_target)
+            # print(self.food_target)
             if self.food_target == None:
                 self.new_move()
-        elif self.state == Prey_State.MOVETOFOOD:
-            print("trying to move to food")
-            self.move_to_food(self.food_target)
+        elif self.state == Prey_State.MOVETOFOOD: # braek out of movetofood if at food
+            if self.distance(self.food_target.position) <= self.dr:
+                # print("distance", self.distance(self.food_target.position), self.dr)
+                self.state = Prey_State.EATING
+                self.current_action_time_remaining = self.te
+            else:
+                # print("trying to move to food")
+                self.move_to_food(self.food_target)
         elif self.state == Prey_State.EATING:
-            print("am eating")
-            self.energy += self.er
-            self.eat(self.food_target)
-            # print("self energy step eating ", self.energy)
-            self.food_target = None
+            # print("am eating")
+            if self.food_target != None:
+                self.energy += self.er
+                self.eat(self.food_target)
+                # print("self energy step eating ", self.energy)
+                self.food_target = None
         elif self.state == Prey_State.SCANNING:
             # print("SCAN1")
             self.scan()
@@ -278,9 +273,11 @@ class PreyAgent(TypedAgent):
             else:
                 # print("else pv is ", self.pv)
                 if self.food_target is not None:
-                    # print("FOOD TARGET")
-                    if self.distance(self.food_target.position) < self.dr:
+                    # print("FOOD TARGET", self.food_target)
+                    if self.distance(self.food_target.position) <= self.dr:
+                        # print("distance", self.distance(self.food_target.position), self.dr)
                         self.state = Prey_State.EATING
+                        self.current_action_time_remaining = self.te
                         # print(self.state)
                     else:
                         self.state = Prey_State.MOVETOFOOD
@@ -288,6 +285,7 @@ class PreyAgent(TypedAgent):
                 else:
                     if self.previous_state == Prey_State.MOVING:
                         if RAND < self.pm:
+                            # print("RAND IS ", RAND, " and self.pm ", self.pm)
                             self.state = Prey_State.MOVING
                             # print(self.state)
                         else:
@@ -480,15 +478,16 @@ class PreyAgent(TypedAgent):
                     self.new_move()
 
     def distance(self, otherpos):
-        print(self.pos, otherpos, " is the position ")
+        # print(self.pos, otherpos, " is the position ")
         # (distance_x, distance_y) = (self.pos[0] - otherpos[0], self.pos[1] - otherpos[1])
-        dist = np.sum(np.square(np.array((self.pos)), np.array((otherpos))))
-        print("distance is ", np.sqrt(dist))
+        dist = pow((self.pos[0] - otherpos[0]),2) + pow((self.pos[1] - otherpos[1]),2)
+        # dist = np.sum(np.square(np.array((self.pos)), np.square(np.array((otherpos)))))
+        # print("distance is ", np.sqrt(dist))
         return np.sqrt(dist)
 
     # TODO: should this return chosen fooditem or set a field to this fooditem
     def foodscan(self):
-        print("in foodscan")
+        # print("in foodscan")
         # chosenitem = self.model.fooditems[0]
 
         # for neighbour in self.model.grid.get_neighbors(self.position, moore=True, include_center=False,
@@ -508,11 +507,12 @@ class PreyAgent(TypedAgent):
 
         chosenitems = self.model.grid.get_neighbors(self.position, include_center=False,
                                                     radius=self.max_neighbour_awareness)
-        print("max neigh", self.max_neighbour_awareness)
+        # print("max neigh", self.max_neighbour_awareness)
         chosenitem_ = None
 
         for chosenitem in chosenitems:
-            print(chosenitem)
+            # print("prey pos", self.position)
+            # print(chosenitem.position)
             if chosenitem.type == "food":
                 chosenitem_ = chosenitem
                 break
@@ -533,25 +533,30 @@ class PreyAgent(TypedAgent):
         # (self.dr * abs(food_item.position - self.position)) / 2
         # dif = (abs(food_item.position[0] - self.position[0] / 2), abs(food_item.position[1] - self.position[1] / 2))
         # new_position = food_item.position - (self.dr * dif)
+        '''
         x = food_item.position[0] - self.dr * \
             abs(food_item.position[0] - self.position[0] / 2)
         y = food_item.position[1] - self.dr * \
             abs(food_item.position[1] - self.position[1] / 2)
+        '''
+        x = food_item.position[0] - (self.dr/2) * abs(food_item.position[0] - self.position[0])
+        y = food_item.position[1] - (self.dr/2) * abs(food_item.position[1] - self.position[1])
         new_position = (x, y)
+        # print("Self:", self.position, "Food", food_item.position, "New:", new_position)
         self.position = new_position
         self.current_action_time_remaining = self.distance(new_position)
         self.new_move()
 
     def eat(self, food_item):
-        print("Nom")
+        # print("Nom")
         # resource items that are eaten disappear immediately (no half eating possible)
         self.model.remove_agents_food.append(food_item)
         # remove the agent from the grid, immediately to prevent it being eaten twice
         self.model.grid.remove_agent(food_item)
-        self.current_action_time_remaining = self.current_action_time_remaining - self.te
+        #self.current_action_time_remaining = self.current_action_time_remaining - self.te
 
     def scan(self):
-        print(self.position)
+        # print(self.position)
         for neighbour in self.model.grid.get_neighbors(self.position, include_center=False,
                                                        radius=self.max_neighbour_awareness):
             if neighbour.get_type() == "predator":

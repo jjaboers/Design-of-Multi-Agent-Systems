@@ -12,9 +12,9 @@ default_params_prey = {
     "h": 5,  # half-max distance detect predator
     "N": 5,  # scaling for predator detection
     "em": 1,  # metabolism
-    "max_energy": 100000,  # called eM in paper
+    "max_energy": 10,  # called eM in paper Was 100000
     "death_rate": 0.1,
-    "max_age": 10512000,  # 60 * 24 * 365 * 20: 20 years expressed in minutes
+    "max_age": 30,  # Was 10512000 = 60 * 24 * 365 * 20: 20 years expressed in minutes
     "mutation_rate": 0.05,
     "is_safe": True,
     "waiting_time": 10,  # TODO find initial value
