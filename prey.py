@@ -376,6 +376,7 @@ class PreyAgent(TypedAgent):
 
     def new_move(self):
         # TODO how to get neighbours, but only of class prey, current idea isn't efficent
+        print("NEW_MOVE", self.position)
         # Grouping params
         # get number of actual neighbors within zones
         d_hat = np.array([0, 0])
@@ -525,10 +526,12 @@ class PreyAgent(TypedAgent):
         if (self.v_hat[0] + self.v_hat[1] != 0.0):
             new_position = self.dm * self.v_hat + self.position
         else:
-            self.v_hat = np.array([self.pm, self.pm])
+            # self.v_hat = np.array([self.pm, self.pm])
+            self.v_hat = np.concatenate((self.pm, self.pm))
             new_position = self.dm * self.v_hat + self.position
         print("v_hat is ", self.v_hat)
         print("dm is ", self.dm)
+        print("new position is", new_position)
         # TODO Rounding is causing problems but not rounding causes issues in the get_neighbour calls
         new_position_rounded = new_position
         # Set new pos
