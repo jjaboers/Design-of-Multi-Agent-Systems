@@ -6,7 +6,8 @@ default_params_prey = {
     "position": (random.randrange(setup.GRID_WIDTH), random.randrange(setup.GRID_HEIGHT)),
     "food_target": None,
     "zl": 25,  # alignment zone
-    "dr": 0.9,  # individual reach
+    # "dr": 0.9,  # individual reach
+    "dr": 1,  # individual reach
     "max_speed": 0.1,
     "max_neighbour_awareness": 50,  # meters
     "h": 5,  # half-max distance detect predator

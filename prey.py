@@ -288,7 +288,7 @@ class PreyAgent(TypedAgent):
                 # print("else pv is ", self.pv)
                 if self.food_target is not None:
                     print("FOOD TARGET distance", self.distance(self.food_target.position))
-                    print("state is eating ", self.food_target.position, " > ", self.dr)
+                    print("state is distance  ", self.distance(self.food_target.position), " > ", self.dr)
                     if self.distance(self.food_target.position) <= self.dr:
                         print("state is eating ", self.food_target.position, " < ", self.dr)
                         self.state = Prey_State.EATING
@@ -468,11 +468,11 @@ class PreyAgent(TypedAgent):
                     sum2 = np.array(x.v_hat) + sum2
             sums = sum1 + sum2
             abs_sums = math.sqrt((sums[0] * sums[0]) + (sums[1] * sums[1]))
-            print("invalid true divide")
-            print(sums, abs_sums)
+            # print("invalid true divide")
+            # print(sums, abs_sums)
             if abs_sums != 0:
                 d_hat = - sums / abs_sums
-                print("d hat", d_hat)
+                # print("d hat", d_hat)
             else:
                 d_hat = np.array([0,0])
             # d_hat = (sum1 + sum2) / abs(sum1 + sum2)
@@ -482,10 +482,19 @@ class PreyAgent(TypedAgent):
         v_abs = np.sqrt(
             (self.v_hat[0] * self.v_hat[0]) + (self.v_hat[1] * self.v_hat[1]))
         d_abs = np.sqrt((d_hat[0] * d_hat[0]) + (d_hat[1] * d_hat[1]))
-        print("d_abs ", d_abs, v_abs, dot_product)
-        angle = math.acos(dot_product / v_abs * d_abs)
-        # convert to degrees, ensure positive
-        angle = abs(angle * (180.0 / math.pi))
+        # print("d_abs ", d_abs, v_abs, dot_product)
+        if v_abs == 0.0 :
+            angle = round(random.uniform(0, math.pi), 2)
+        else:
+            print("vabs, dot prod, d abs", v_abs, dot_product, d_abs)
+            print("x for acos" , dot_product / v_abs * d_abs)
+            x = round(dot_product / v_abs * d_abs, 2)
+            print(x)
+            angle = math.acos(x)
+            print("angle")
+            print(angle)
+            # convert to degrees, ensure positive
+            angle = abs(angle * (180.0 / math.pi))
 
         if angle <= self.ar or angle <= self.aa:
             self.v_hat = d_hat
@@ -513,11 +522,22 @@ class PreyAgent(TypedAgent):
         self.v_hat = [vx, vy]
 
         # Get new position and make sure it is on the grid
-        new_position = self.dm * self.v_hat + self.position
+        if (self.v_hat[0] + self.v_hat[1] != 0.0):
+            new_position = self.dm * self.v_hat + self.position
+        else:
+            self.v_hat = np.array([self.pm, self.pm])
+            new_position = self.dm * self.v_hat + self.position
+        print("v_hat is ", self.v_hat)
+        print("dm is ", self.dm)
         # TODO Rounding is causing problems but not rounding causes issues in the get_neighbour calls
-        new_position_rounded = (new_position[0], self.position[1])
+        new_position_rounded = new_position
         # Set new pos
+        print("out of bounds? ", new_position_rounded)
+        if (self.model.grid.out_of_bounds( new_position_rounded) ):
+            new_position_rounded = self.model.grid.torus_adj(new_position_rounded)
         self.model.grid.move_agent(self, new_position_rounded)
+        print("position : ", self.position)
+        print("new pos: ", self, new_position_rounded)
         self.position = (tuple(new_position_rounded))
         # Duration
         self.current_action_time_remaining = self.dm * self.tm

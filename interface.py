@@ -13,12 +13,14 @@ def agent_portrayal(agent):
     if agent.type == "prey":
         portrayal["Color"] = "blue"
         portrayal["Layer"] = 1
+        portrayal["r"] = 4
     elif agent.type == "food":
         portrayal["Color"] = "green"
         portrayal["Layer"] = 0
     elif agent.type == "predator":
         portrayal["Color"] = "red"
         portrayal["Layer"] = 2
+        portrayal["r"] = 4
 
     return portrayal
 
