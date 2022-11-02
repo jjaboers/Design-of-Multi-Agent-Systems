@@ -34,3 +34,6 @@ class TypedAgent(mesa.Agent):
 
 	def get_position(self):
 		return self.position
+	
+	def set_energy(self, energy):
+		self.energy = energy

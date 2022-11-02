@@ -9,7 +9,7 @@ default_params_predator = {
     "position":   (0, 0),
     "initial_energy":   100000,
     "search_angle":   250,   # degrees TODO probably take out
-    "t_food_scan":   3,
+    "t_food_scan":   (0.167 + 1.99) / 2,
     "alignment":   50,
     "reach":   1.0,
     "max_speed":   2,   # TODO find right val
@@ -22,15 +22,32 @@ default_params_predator = {
     "reproduction_requirement":   100000,   # max energy
     "reproduction_cost":   50000,   # half of max energy (paper)
     "offspring_energy":   50000,   # half of max energy (paper)
-    "r_repulsion":   20,
-    "r_attraction":   30,
-    "max_angle_attraction":   72,
-    "min_angle_attraction":   72,
-    # "attack_distance":   9,   # paper: 5, 7, 9
+    "r_repulsion":   25,
+    "r_attraction":   25,
+    "angle_repulsion":   180,
+    "angle_attraction":   180,
     "prey_detection_range":   50,   # not sure because angle and r
     "attack_speed":   11.1,   # (m/s) prey paper, check wolf paper
     "search_duration":   3
 }
+# Also works with initialization if you pass default params
+def mutate_params(params):
+    params = params.copy()
+    if random.random() < 0.05:
+        params["t_food_scan"] = random.uniform(0.167, 1.99, 1)
+    if random.random() < 0.05:
+        params["r_repulsion"] = random.normal(params["r_repulsion"], 10, 1)
+    if random.random() < 0.05:
+        params["r_attraction"] = random.normal(params["r_attraction"], 10, 1)
+        params["r_attraction"] = min(params["r_attraction"], params["r_repulsion"])
+    if random.random() < 0.05:
+        params["t_food_scan"] = random.uniform(0.167, 1.99, 1)
+    if random.random() < 0.05:
+        params["angle_repulsion"] = random.normal(params["angle_repulsion"], 72, 1)
+    if random.random() < 0.05:
+        params["angle_attraction"] = random.normal(params["angle_attraction"], 72, 1)
+    
+    return params
 
 
 # def get_default_params_predator():

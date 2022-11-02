@@ -37,6 +37,7 @@ class PredatorAgent(TypedAgent):
         self.model = model
         self.nearby_predators = []
         self.nearby_prey = []
+        self.evolve = evolve
 
         # constants-------------------------------------------------------------
         # called eM in paper
@@ -79,8 +80,8 @@ class PredatorAgent(TypedAgent):
         # evolvable parameters--------------------------------------------------
         self.r_repulsion = params["r_repulsion"]
         self.r_attraction = params["r_attraction"]
-        self.max_angle_attraction = params["max_angle_attraction"]
-        self.min_angle_attraction = params["min_angle_attraction"]
+        self.angle_repulsion = params["angle_repulsion"]
+        self.angle_attraction = params["angle_attraction"]
         # evolvable parameters--------------------------------------------------
 
         # predator specific parameters------------------------------------------
@@ -91,9 +92,11 @@ class PredatorAgent(TypedAgent):
 
     # TODO check duration of step as age is in minutes
     def step(self):
-        if self.age >= self.max_age:
-            self.die()
-        # TODO implement death_rate
+        if self.evolve:
+            if self.age >= self.max_age:
+                self.die()
+            # TODO implement death_rate
+            self.reproduce()
         if self.state == Predator_State.DEAD:
             return
         elif self.state == Predator_State.SEARCHING:
@@ -201,10 +204,16 @@ class PredatorAgent(TypedAgent):
         return self.state != Predator_State.DEAD
 
     # asexual reproduction
-    #
-    # def reproduce(self):
-    #     pass
+    
+    def reproduce(self):
+        if self.energy < self.reproduction_requirement:
+            return 
+        self.energy -= self.reproduction_cost
+        params = predator_params.mutate_params(self.params)
+        self.model.create_new_predator(params)
 
     def die(self):
         super().die()
         self.set_state(Predator_State.DEAD)
+
+    
