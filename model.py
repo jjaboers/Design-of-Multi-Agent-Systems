@@ -6,6 +6,7 @@ from food import FoodAgent
 from data_collector import DataCollector
 from scipy.spatial import distance
 import numpy as np
+import random
 
 
 class Model(mesa.Model):
@@ -86,6 +87,17 @@ class Model(mesa.Model):
         self.grid.place_agent(a, pos)
         a.set_position(pos)
         self.num_prey_agents += 1
+
+    def create_new_predator(self, params):
+        agent = PredatorAgent(self.next_id(), self, params) 
+        agent.set_energy(agent.max_energy / 2)
+        self.schedule.add(agent)
+        x = random.uniform(0, self.grid.x_max)
+        y = random.uniform(0, self.grid.y_max)
+        self.gird.place_agent(agent, (x,y))
+        agent.set_position((x,y))
+        self.num_predator_agents += 1
+
 
     def create_predators(self, num_predator_agents, attack_distance, evolve):
         # Create predator agents
