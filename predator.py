@@ -204,16 +204,17 @@ class PredatorAgent(TypedAgent):
         return self.state != Predator_State.DEAD
 
     # asexual reproduction
-    
+
     def reproduce(self):
         if self.energy < self.reproduction_requirement:
-            return 
+            return
         self.energy -= self.reproduction_cost
-        params = predator_params.mutate_params(self.params)
-        self.model.create_new_predator(params)
+        if self.evolve:
+            params = predator_params.mutate_params(self.params)
+            self.model.create_new_predator(params)
+        else:
+            self.model.create_new_predator(self.params)
 
     def die(self):
         super().die()
         self.set_state(Predator_State.DEAD)
-
-    
