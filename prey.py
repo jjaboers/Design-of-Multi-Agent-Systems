@@ -442,7 +442,10 @@ class PreyAgent(TypedAgent):
                     if abs_dist != 0:
                         sum0 = sum0 + (dist / abs_dist)
             abs_sum = math.sqrt((sum0[0] * sum0[0]) + (sum0[1] * sum0[1]))
-            d_hat = - sum0 / abs_sum
+            if abs_sum != 0:
+                d_hat = - sum0 / abs_sum
+            else:
+                d_hat = - sum0
 
         else:
             sum1 = np.array([0, 0])
@@ -465,7 +468,13 @@ class PreyAgent(TypedAgent):
                     sum2 = np.array(x.v_hat) + sum2
             sums = sum1 + sum2
             abs_sums = math.sqrt((sums[0] * sums[0]) + (sums[1] * sums[1]))
-            d_hat = - sums / abs_sums
+            print("invalid true divide")
+            print(sums, abs_sums)
+            if abs_sums != 0:
+                d_hat = - sums / abs_sums
+                print("d hat", d_hat)
+            else:
+                d_hat = np.array([0,0])
             # d_hat = (sum1 + sum2) / abs(sum1 + sum2)
 
         # calculate angle between v_hat and d_hat
@@ -473,6 +482,7 @@ class PreyAgent(TypedAgent):
         v_abs = np.sqrt(
             (self.v_hat[0] * self.v_hat[0]) + (self.v_hat[1] * self.v_hat[1]))
         d_abs = np.sqrt((d_hat[0] * d_hat[0]) + (d_hat[1] * d_hat[1]))
+        print("d_abs ", d_abs, v_abs, dot_product)
         angle = math.acos(dot_product / v_abs * d_abs)
         # convert to degrees, ensure positive
         angle = abs(angle * (180.0 / math.pi))
