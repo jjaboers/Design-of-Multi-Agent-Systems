@@ -41,18 +41,18 @@ class Model(mesa.Model):
         self.n_agents_per_type = None
         self.update_model_data()
 
-        #kill list
+        # kill list
         self.remove_agents_food = []
 
     def step(self):
         """Advance the model by one step."""
         self.data_collector.collect(self)
-        print("preys :" , self.num_prey_agents)
+        print("preys :", self.num_prey_agents)
 
         # model shuffles the order of the agents, then activates and executes each agent’s step method
         self.schedule.step()
         self.update_model_data()
-        for x in self.remove_agents_food: # need to remove food agents taht have been eaten by prey
+        for x in self.remove_agents_food:  # need to remove food agents taht have been eaten by prey
             self.schedule.remove(x)
             self.remove_agents_food.remove(x)
         # print("step in main:", self.n_agents_per_type)
@@ -73,6 +73,7 @@ class Model(mesa.Model):
             self.grid.place_agent(a, pos)
             a.set_position(pos)
             self.num_prey_agents += 1
+
     def create_new_prey(self, evolv_params):
         a = PreyAgent(self.next_id(), self, evolvable_params=evolv_params)
         a.set_energy(a.max_energy / 2)
@@ -89,15 +90,14 @@ class Model(mesa.Model):
         self.num_prey_agents += 1
 
     def create_new_predator(self, params):
-        agent = PredatorAgent(self.next_id(), self, params) 
+        agent = PredatorAgent(self.next_id(), self, params)
         agent.set_energy(agent.max_energy / 2)
         self.schedule.add(agent)
         x = random.uniform(0, self.grid.x_max)
         y = random.uniform(0, self.grid.y_max)
-        self.gird.place_agent(agent, (x,y))
-        agent.set_position((x,y))
+        self.grid.place_agent(agent, (x, y))
+        agent.set_position((x, y))
         self.num_predator_agents += 1
-
 
     def create_predators(self, num_predator_agents, attack_distance, evolve):
         # Create predator agents
