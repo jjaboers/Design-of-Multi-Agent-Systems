@@ -8,7 +8,7 @@ def agent_portrayal(agent):
     portrayal = {
         "Shape": "circle",
         "Filled": "true",
-        "r": 0.5,
+        "r": 1,
     }
     if agent.type == "prey":
         portrayal["Color"] = "blue"

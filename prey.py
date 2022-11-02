@@ -89,7 +89,8 @@ class PreyAgent(TypedAgent):
         self.previous_state = Prey_State.NOTHING
         self.current_action_time_remaining = 0
         self.detected_predator = False  # keep it like this or make it Boolean ?
-        self.age = 10000 * setup.PROPORTION
+        self.max_age = default_params["max_age"] * setup.PROPORTION
+        self.age = self.max_age
         self.energy = 100000 * setup.PROPORTION
 
         self.min_energy = 0
@@ -100,8 +101,8 @@ class PreyAgent(TypedAgent):
         self.food_target = default_params["food_target"]
 
         self.zl = default_params["zl"]
-        self.dr = default_params["dr"] * setup.PROPORTION
-        self.max_speed = default_params["max_speed"] * setup.PROPORTION
+        self.dr = default_params["dr"]
+        self.max_speed = default_params["max_speed"]
         self.max_neighbour_awareness = default_params["max_neighbour_awareness"]
         # default_params["max_neighbour_awareness"] * \
             # setup.PROPORTION if default_params["max_neighbour_awareness"] * \
@@ -109,9 +110,9 @@ class PreyAgent(TypedAgent):
         self.h = default_params["h"] if default_params["h"] > 5 else 5
         self.N = default_params["N"]
         self.em = default_params["em"]
-        self.max_energy = default_params["max_energy"] * setup.PROPORTION
+        # self.max_energy = default_params["max_energy"] * setup.PROPORTION
+        self.max_energy = 100000 * setup.PROPORTION
         self.death_rate = default_params["death_rate"]
-        self.max_age = default_params["max_age"] * setup.PROPORTION
         self.mutation_rate = default_params["mutation_rate"]
         self.is_safe = default_params["is_safe"]
         self.waiting_time = default_params["waiting_time"]
@@ -155,12 +156,12 @@ class PreyAgent(TypedAgent):
         # move duration, between 0.167 and 1.99, sd = 0.4
         self.tm = evolvable_params["tm"]
         # move distance, minimum 0, sd = 3
-        self.dm = evolvable_params["dm"] * setup.PROPORTION
+        self.dm = evolvable_params["dm"]
         # move angle, between 0 and 360, sd = 72
         self.am = evolvable_params["am"]
         # foraging
-        self.df = evolvable_params["df"] * \
-            setup.PROPORTION  # search radius of forager
+        self.df = evolvable_params["df"]
+              # search radius of forager
         # search angle, angle between food and forward direction
         self.af = evolvable_params["af"]
         self.tf = evolvable_params["tf"]  # foodscan duration
@@ -298,6 +299,7 @@ class PreyAgent(TypedAgent):
                         # print(self.state)
                 else:
                     if self.previous_state == Prey_State.MOVING:
+                        RAND = np.random.rand()
                         if RAND < self.pm:
                             # print("RAND IS ", RAND, " and self.pm ", self.pm)
                             self.state = Prey_State.MOVING
@@ -306,6 +308,7 @@ class PreyAgent(TypedAgent):
                             self.state = Prey_State.FOODSCAN
                             # print(self.state)
                     elif self.previous_state == Prey_State.EATING:
+                        RAND = np.random.rand()
                         if RAND < self.pse:
                             self.state = Prey_State.FOODSCAN
                             # print(self.state)
@@ -315,6 +318,7 @@ class PreyAgent(TypedAgent):
                     elif self.previous_state == Prey_State.FLEEING:
                         self.state = Prey_State.SCANNING
                     elif self.previous_state == Prey_State.SCANNING:
+                        RAND = np.random.rand()
                         if RAND < self.pse:
                             self.state = Prey_State.FOODSCAN
                             # print(self.state)
@@ -322,6 +326,7 @@ class PreyAgent(TypedAgent):
                             self.state = Prey_State.MOVING
                             # print(self.state)
                     elif self.previous_state == Prey_State.NOTHING:
+                        RAND = np.random.rand()
                         if RAND < self.pse:
                             self.state = Prey_State.FOODSCAN
                             # print(self.state)
