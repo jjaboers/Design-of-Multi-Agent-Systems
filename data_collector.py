@@ -34,7 +34,7 @@ class DataCollector(DC):
 		prey_agents = model.get_prey()
 		for prey in prey_agents:
 			vigilance += prey.pv
-		predation = len(model.get_predators())
+		predation = model.attack_distance
 		time = model.step_nr
 		group_sz_prey = len(prey_agents)
 		data = {	"predation_risk" : predation,

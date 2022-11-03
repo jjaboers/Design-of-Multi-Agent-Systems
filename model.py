@@ -14,12 +14,19 @@ class Model(mesa.Model):
     """A model with some number of agents."""
     # grid = None
 
-    def __init__(self, N, width, height, attack_distance, evolve):
+    def __init__(self, N, width, height, attack_distance, evolve, n_prey = None, n_pred = None):
         super().__init__()
         # agent counts
         self.step_nr = 0
-        self.num_prey_agents = int(2*N/3)
-        self.num_predator_agents = int(N/3)
+        if n_prey is None:
+            self.num_prey_agents = int(2*N/3)
+        else:
+            self.num_prey_agents = n_prey
+        
+        if n_pred is None:
+            self.num_predator_agents = int(N/3)
+        else:
+            self.num_predator_agents = n_pred
         self.num_resources = width * height * 0.535  # factor found in paper
 
         # init environment
