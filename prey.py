@@ -729,5 +729,6 @@ class PreyAgent(TypedAgent):
         print("DEAD")
         self.state = Prey_State.DEAD
         self.model.num_prey_agents -= 1
+        # TODO this does nothing
         self.model.prey
         return

@@ -7,6 +7,7 @@ from data_collector import DataCollector
 from scipy.spatial import distance
 import numpy as np
 import random
+import predator_params as pred_params
 
 
 class Model(mesa.Model):
@@ -101,7 +102,11 @@ class Model(mesa.Model):
 
     def create_predators(self, num_predator_agents, attack_distance, evolve):
         # Create predator agents
+        params = pred_params.get_default_params_predator()
+       
         for i in range(self.num_prey_agents+1, self.num_prey_agents + num_predator_agents):
+            if evolve:
+                params = pred_params.mutate_params(params)
             a = PredatorAgent(self.next_id(), self,
                               attack_distance, evolve=evolve)
             self.schedule.add(a)
@@ -174,6 +179,12 @@ class Model(mesa.Model):
             if dist <= d_min and dist <= range:
                 ret_agent = agent
                 #  TODO: whats the purpose of this subtraction that's not returned into any variable???
-                d_min - dist
+                d_min = dist
                 break
         return ret_agent
+
+    def get_predators(self):
+        return self.predators
+    
+    def get_prey(self):
+        return self.prey
