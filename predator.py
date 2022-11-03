@@ -12,6 +12,7 @@ import math
 import random
 # searching is roaming while scanning is looking
 
+
 def trunc_normal(lower, upper, sd, mu):
     r = truncnorm.rvs(
         (lower - mu) / sd, (upper - mu) / sd, loc=mu, scale=sd, size=1)
@@ -61,6 +62,7 @@ def mutate(params):
                 params[parameter] = trunc_normal(0, 100, 1, params[parameter])
         # return at the end modified params
         return params
+
 
 class Predator_State(Enum):
     SEARCHING = 1
@@ -143,6 +145,7 @@ class PredatorAgent(TypedAgent):
 
         # predator specific parameters------------------------------------------
         self.attack_distance = attack_distance
+        print("-----------attack distance-------------", attack_distance)
         self.prey_detection_range = params["prey_detection_range"]
         self.attack_speed = params["attack_speed"]
         # predator specific parameters------------------------------------------
@@ -155,14 +158,14 @@ class PredatorAgent(TypedAgent):
             random_death = np.random.random() < self.death_rate
             if too_old or starved or random_death:
                 self.die()
-                return 
+                return
             scanning = self.state == Predator_State.SCANNING
             searching = self.state == Predator_State.SEARCHING
             if scanning or searching:
                 # returns false if not able to, skips a turn if reproduced
                 if self.reproduce():
                     return
-        
+
         if self.state == Predator_State.DEAD:
             return
         elif self.state == Predator_State.SEARCHING:
@@ -186,8 +189,9 @@ class PredatorAgent(TypedAgent):
 
         predators_in_range = self.find_neighbors_in_range()
         self.group_move(predators_in_range)
- 
+
     def chase(self):
+        print("predator chasing")
         if self.target == None or not self.target.is_alive():
             self.set_state(Predator_State.SEARCHING)
             return
@@ -202,9 +206,9 @@ class PredatorAgent(TypedAgent):
 
         if dist <= self.attack_distance:
             # not sure about waiting a step
-            self.set_state(Predator_State.EATING) 
+            self.set_state(Predator_State.EATING)
             return
-        
+
         self.direction = target_pos - current_pos
         self.direction = np.linalg.norm(self.direction)
         new_pos = self.max_speed * self.direction + self.position
@@ -229,6 +233,7 @@ class PredatorAgent(TypedAgent):
             self.set_state(Predator_State.CHASING)
 
     def eat(self):
+        print("predator eating")
         self.energy += self.target.get_energy()
         if self.energy < self.max_energy:
             self.energy = self.max_energy
@@ -236,8 +241,8 @@ class PredatorAgent(TypedAgent):
         self.target.die()
         self.target = None
         self.model.schedule.remove(self.target)
+        self.model.grid.remove_agent(self.target)
         self.set_state(Predator_State.SEARCHING)
-
 
     def find_neighbors_in_range(self):
         predators = self.model.get_predators()
@@ -245,14 +250,14 @@ class PredatorAgent(TypedAgent):
             return []
         predators_in_range = []
         for agent in predators:
-            dist = np.linalg.norm(  np.array(self.position) 
-                                    - 
-                                    np.array(agent.get_position())
-                                    )
+            dist = np.linalg.norm(np.array(self.position)
+                                  -
+                                  np.array(agent.get_position())
+                                  )
             if dist < self.max_neighbour_awareness:
                 predators_in_range.append(agent)
         return predators_in_range
-    
+
     # group move based on prey move
     def group_move(self, neighbors):
         # get number of actual neighbors within zones
@@ -266,21 +271,21 @@ class PredatorAgent(TypedAgent):
         sum_2 = np.array([0.0, 0.0])
         for agent in neighbors:
             agent_pos = np.array(agent.get_position())
-            dist = np.linalg.norm(  current_position - 
-                                    agent_pos
-                                )
+            dist = np.linalg.norm(current_position -
+                                  agent_pos
+                                  )
             if self.r_repulsion >= dist:
                 if dist != 0:
                     sum_0 += (agent_pos - current_position) / dist
                 n_agents_rep += 1
-            
+
             if self.alignment >= dist:
                 if dist != 0:
                     sum_1 += (agent_pos - current_position) / dist
                 n_agents_align += 1
 
             if self.r_attraction >= dist:
-                sum_2 += np.array(agent.direction)   
+                sum_2 += np.array(agent.direction)
                 n_agents_attract += 1
         abs_sum = math.sqrt((sum_0[0] * sum_0[0]) + (sum_0[1] * sum_0[1]))
         # if n_agents_repulsion_zone >= self.nr: TODO figure this out, what is self.nr???
@@ -296,12 +301,12 @@ class PredatorAgent(TypedAgent):
         else:
             d_hat = np.array([0, 0])
 
-        
-        dot_product = (self.direction[0] * d_hat[0]) + (self.direction[1] * d_hat[1])
+        dot_product = (self.direction[0] * d_hat[0]) + \
+            (self.direction[1] * d_hat[1])
         v_abs = np.sqrt(
-                            (self.direction[0] * self.direction[0]) + 
-                            (self.direction[1] * self.direction[1])
-                        )
+            (self.direction[0] * self.direction[0]) +
+            (self.direction[1] * self.direction[1])
+        )
         d_abs = np.sqrt((d_hat[0] * d_hat[0]) + (d_hat[1] * d_hat[1]))
         if v_abs == 0.0:
             angle = round(random.uniform(0, math.pi), 2)
@@ -310,7 +315,6 @@ class PredatorAgent(TypedAgent):
             angle = math.acos(x)
             if angle < 0:
                 angle = 360 - angle
-            
 
         if angle <= self.angle_repulsion or angle <= self.angle_attraction:
             self.direction = d_hat
@@ -338,7 +342,7 @@ class PredatorAgent(TypedAgent):
 
         # Get new position and make sure it is on the grid
         if (self.direction[0] + self.direction[1] != 0.0):
-            print("shapes: {0}, {1}, {2}".format(self.max_speed, self.direction, self.position))
+            # print("shapes: {0}, {1}, {2}".format(self.max_speed, self.direction, self.position))
             new_position = self.max_speed * self.direction + current_position
         else:
             # self.v_hat = np.array([self.pm, self.pm])
@@ -351,7 +355,7 @@ class PredatorAgent(TypedAgent):
             new_position_rounded = self.model.grid.torus_adj(
                 new_position_rounded)
         self.move((new_position_rounded[0], new_position_rounded[1]))
-    
+
     # Roaming in a group based on swarming
     def group_move_simple(self, predators_in_range):
         if len(predators_in_range) <= 0:
@@ -359,22 +363,21 @@ class PredatorAgent(TypedAgent):
         attraction_vec = self.attract_neighbors(predators_in_range)
         repulsion_vec = self.repulse_neighbors(predators_in_range)
         direction_vec = self.direction_neighbors(predators_in_range)
-        self.direction +=   (       
-                                attraction_vec +
-                                repulsion_vec  +
-                                direction_vec
-                            )
+        self.direction += (
+            attraction_vec +
+            repulsion_vec +
+            direction_vec
+        )
         self.direction /= np.linalg.norm(self.direction)
         new_position = np.array(self.pos) + (self.direction * self.max_speed)
         self.move((new_position[0], new_position[1]))
-    
+
     def random_move(self):
         # set random direction
         self.direction = np.random.random(2)
         self.direction /= np.linalg.nrom(self.direction)
         new_position = np.array(self.pos) + (self.direction * self.max_speed)
         self.move((new_position[0], new_position[1]))
-                            
 
     def move(self, new_position):
         # print("new_position: ", new_position)
@@ -387,7 +390,7 @@ class PredatorAgent(TypedAgent):
 
             center += np.array(agent.pos)
         return center / len(center)
-    
+
     def repulse_neighbors(self, neighbors):
         pos_vector = np.array(self.get_position())
         rep_vector = np.array([0.0, 0.0])
@@ -397,7 +400,7 @@ class PredatorAgent(TypedAgent):
             if dist <= self.r_repulsion:
                 rep_vector -= np.int64(agent_pos - pos_vector)
         return rep_vector
-    
+
     def direction_neighbors(self, neighbors):
         direction_mean = np.array([0.0, 0.0])
         for agent in neighbors:
