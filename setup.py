@@ -5,8 +5,8 @@ UI_HEIGHT = 400
 
 
 # model parameters 
-GRID_WIDTH = 40
-GRID_HEIGHT = 40
+GRID_WIDTH = 100
+GRID_HEIGHT = 100
 
 
 N_AGENTS = 10

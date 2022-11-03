@@ -15,7 +15,7 @@ batch_params = [model_params_no_evolve_5, model_params_no_evolve_7, model_params
                 model_params_evolve_5, model_params_evolve_7, model_params_evolve_9]
 
 batch_runner = FixedBatchRunner(
-    Model, batch_params, max_steps=10, model_reporters=model_reporters)
+    Model, batch_params, max_steps=200, model_reporters=model_reporters)
 
 result_batch_run = batch_runner.run_all()
 
