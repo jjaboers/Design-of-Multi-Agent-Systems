@@ -94,8 +94,9 @@ class PredatorAgent(TypedAgent):
         self.nearby_prey = []
         self.evolve = evolve
         # set random initial direction
-        self.direction = np.random.random(2)
+        self.direction = np.array([random.random(), random.random()])
         self.direction /= np.linalg.norm(self.direction)
+        print("direction normalize self.direction: ", self.direction)
 
         # constants-------------------------------------------------------------
         # called eM in paper
@@ -210,7 +211,9 @@ class PredatorAgent(TypedAgent):
             return
 
         self.direction = target_pos - current_pos
-        self.direction = np.linalg.norm(self.direction)
+        self.direction /= np.linalg.norm(self.direction)
+        print("direction normalize self.direction 2: ", self.direction)
+
         new_pos = self.max_speed * self.direction + self.position
         dist_travelled = np.linalg.norm(current_pos - new_pos)
 
@@ -237,11 +240,11 @@ class PredatorAgent(TypedAgent):
         self.energy += self.target.get_energy()
         if self.energy < self.max_energy:
             self.energy = self.max_energy
-        self.target.set_state(Prey_State.DEAD)
+        self.target.state = Prey_State.DEAD
         self.target.die()
         self.target = None
-        self.model.schedule.remove(self.target)
-        self.model.grid.remove_agent(self.target)
+        # self.model.schedule.remove(self.target)
+        # self.model.grid.remove_agent(self.target)
         self.set_state(Predator_State.SEARCHING)
 
     def find_neighbors_in_range(self):
@@ -301,6 +304,7 @@ class PredatorAgent(TypedAgent):
         else:
             d_hat = np.array([0, 0])
 
+        print("self.direction, d_hat: ", self.direction, d_hat)
         dot_product = (self.direction[0] * d_hat[0]) + \
             (self.direction[1] * d_hat[1])
         v_abs = np.sqrt(
@@ -328,7 +332,7 @@ class PredatorAgent(TypedAgent):
                 a = self.angle_attraction
             vx = vx * math.cos(a) - vy * math.sin(a)
             vy = vx * math.cos(a) + vy * math.sin(a)
-            self.direction = [vx, vy]
+            self.direction = np.array([vx, vy])
         # random turn of a_M
         if random.random() < 0.5:
             t = - self.angle_move
@@ -346,8 +350,10 @@ class PredatorAgent(TypedAgent):
             new_position = self.max_speed * self.direction + current_position
         else:
             # self.v_hat = np.array([self.pm, self.pm])
-            self.direction = np.random.random(2)
+            self.direction = np.array([random.random(), random.random()])
             self.direction /= np.linalg.norm(self.direction)
+            print("direction normalize self.direction 3: ", self.direction)
+
             new_position = self.max_speed * self.direction + current_position
         new_position_rounded = new_position
         # Set new pos
@@ -374,7 +380,7 @@ class PredatorAgent(TypedAgent):
 
     def random_move(self):
         # set random direction
-        self.direction = np.random.random(2)
+        self.direction = np.array([random.random(), random.random()])
         self.direction /= np.linalg.nrom(self.direction)
         new_position = np.array(self.pos) + (self.direction * self.max_speed)
         self.move((new_position[0], new_position[1]))
