@@ -1,5 +1,5 @@
 import mesa
-
+from copy import deepcopy
 # TODO
 # 	- add energy
 # 	- add all common params
@@ -12,7 +12,10 @@ class TypedAgent(mesa.Agent):
 	energy = 0
 	def __init__(self, unique_id, model, params = None):
 		super().__init__(unique_id, model)
-		self.params = params
+		if params is not None:
+			self.params = deepcopy(params)
+		else:
+			self.params = None
 
 	def set_position(self, pos):
 		self.position = pos

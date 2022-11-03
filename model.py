@@ -7,6 +7,7 @@ from data_collector import DataCollector
 from scipy.spatial import distance
 import numpy as np
 import random
+import predator_params as pred_params
 
 
 class Model(mesa.Model):
@@ -16,6 +17,7 @@ class Model(mesa.Model):
     def __init__(self, N, width, height, attack_distance, evolve):
         super().__init__()
         # agent counts
+        self.step_nr = 0
         self.num_prey_agents = int(2*N/3)
         self.num_predator_agents = int(N/3)
         self.num_resources = width * height * 0.535  # factor found in paper
@@ -56,6 +58,7 @@ class Model(mesa.Model):
             self.schedule.remove(x)
             self.remove_agents_food.remove(x)
         # print("step in main:", self.n_agents_per_type)
+        self.step_nr += 1
 
     def create_prey(self, num_prey_agents):
         # Create prey agents
@@ -101,7 +104,11 @@ class Model(mesa.Model):
 
     def create_predators(self, num_predator_agents, attack_distance, evolve):
         # Create predator agents
+        params = pred_params.get_default_params_predator()
+       
         for i in range(self.num_prey_agents+1, self.num_prey_agents + num_predator_agents):
+            if evolve:
+                params = pred_params.mutate_params(params)
             a = PredatorAgent(self.next_id(), self,
                               attack_distance, evolve=evolve)
             self.schedule.add(a)
@@ -174,6 +181,15 @@ class Model(mesa.Model):
             if dist <= d_min and dist <= range:
                 ret_agent = agent
                 #  TODO: whats the purpose of this subtraction that's not returned into any variable???
-                d_min - dist
+                d_min = dist
                 break
         return ret_agent
+
+    def get_predators(self):
+        return self.predators
+    
+    def get_prey(self):
+        return self.prey
+    
+    def get_global_overview(self):
+        return self.data_collector.get_global_overview()
