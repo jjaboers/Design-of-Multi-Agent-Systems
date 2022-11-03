@@ -262,7 +262,7 @@ class PredatorAgent(TypedAgent):
         if self.energy < self.reproduction_requirement:
             return
         self.energy -= self.reproduction_cost
-        params = predator_params.mutate_params(self.params)
+        params = predator_params.mutate_params(deepcopy(self.params))
         self.model.create_new_predator(params)
         # if self.evolve:
         #     params = predator_params.mutate_params(self.params)
@@ -274,15 +274,15 @@ class PredatorAgent(TypedAgent):
         super().die()
         self.set_state(Predator_State.DEAD)
 
-    def reproduce(self):
-        # Reproduction
-        self.energy = self.energy - self.max_energy / 2
-        #print("self energy step1 ", self.energy)
-        # TODO params is the baseclass name maybe use evolvable
-        child_params = mutate(deepcopy(self.evolvable_params))
-        #print("child params ", child_params)
-        self.model.create_new_prey(child_params)
-        #print("created new prey!!!")
+    # def reproduce(self):
+    #     # Reproduction
+    #     self.energy = self.energy - self.max_energy / 2
+    #     #print("self energy step1 ", self.energy)
+    #     # TODO params is the baseclass name maybe use evolvable
+    #     child_params = mutate(deepcopy(self.evolvable_params))
+    #     #print("child params ", child_params)
+    #     self.model.create_new_prey(child_params)
+    #     #print("created new prey!!!")
 
     def force_birth(self):
         n = 5
