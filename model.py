@@ -27,9 +27,10 @@ class Model(mesa.Model):
         self.schedule = RandomActivation(self)
 
         # init agents
+        self.attack_distance = attack_distance
         self.create_prey(self.num_prey_agents)
         self.create_predators(self.num_predator_agents,
-                              attack_distance, evolve)
+                              self.attack_distance, evolve)
         self.create_food(self.num_resources)
 
         # the schedule alredy has all agents, this might make every
@@ -49,7 +50,7 @@ class Model(mesa.Model):
     def step(self):
         """Advance the model by one step."""
         self.data_collector.collect(self)
-        print("preys :", self.num_prey_agents)
+        print("Model step function")
 
         # model shuffles the order of the agents, then activates and executes each agent’s step method
         self.schedule.step()
@@ -57,7 +58,6 @@ class Model(mesa.Model):
         for x in self.remove_agents_food:  # need to remove food agents taht have been eaten by prey
             self.schedule.remove(x)
             self.remove_agents_food.remove(x)
-        # print("step in main:", self.n_agents_per_type)
         self.step_nr += 1
 
     def create_prey(self, num_prey_agents):
@@ -105,7 +105,7 @@ class Model(mesa.Model):
     def create_predators(self, num_predator_agents, attack_distance, evolve):
         # Create predator agents
         params = pred_params.get_default_params_predator()
-       
+
         for i in range(self.num_prey_agents+1, self.num_prey_agents + num_predator_agents):
             if evolve:
                 params = pred_params.mutate_params(params)
@@ -187,9 +187,9 @@ class Model(mesa.Model):
 
     def get_predators(self):
         return self.predators
-    
+
     def get_prey(self):
         return self.prey
-    
+
     def get_global_overview(self):
         return self.data_collector.get_global_overview()
