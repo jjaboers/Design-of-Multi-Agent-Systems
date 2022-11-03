@@ -19,9 +19,11 @@ class BatchRun:
 
 	def run(self, save = True):
 		for batch_idx in len(self.batch_params):
+			print("Batch " + str(batch_idx))
 			N, width, height, attack_distance, evolve = self.batch_params[batch_idx]
 			data_this_setup = []
 			for run in range(self.runs_per_setup):
+				print("run " + str(run))
 				model = Model(N, width, height, 
 									attack_distance, evolve)
 				for t_step in range(self.n_time_steps):
@@ -49,7 +51,7 @@ class BatchRun:
 				vigilance_total += df["vigilance_total"]
 				vigilance_avg += df["vigilance_avg"]
 				time += df["time"] # kind of stupid I know
-				group_size_prey += 0.0
+				group_size_prey += df["group_size_prey"]
 			predation_risk /= len(dfs)
 			vigilance_total /= len(dfs)
 			vigilance_avg /= len(dfs)

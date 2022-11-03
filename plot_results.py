@@ -24,3 +24,50 @@ def plot_food_count(dc):
 	plt.xlabel("time (steps)")
 	plt.ylabel("n food")
 	plt.show()
+
+
+def plot_A(dfs):
+	x = []
+	y = []
+	for df in dfs:
+		x.append(df["predation_risk"].unique())
+		y.append(np.mean(df["vigilance_avg"]))
+	
+	plt.plot(x, y)
+	plt.title("vigilance vs predation risk")
+	plt.xlabel("predation risk")
+	plt.ylabel("vigilance")
+	plt.show()
+
+def plot_B(dfs):
+	x = []
+	y = []
+	for df in dfs:
+		x.append(df["predation_risk"].unique())
+		y.append(np.mean(df["group_size_prey"]))
+	
+	plt.plot(x, y)
+	plt.title("group size vs predation risk")
+	plt.xlabel("predation risk")
+	plt.ylabel("group size prey")
+	plt.show()
+
+def plot_C(df):
+	x = df["time"]
+	y = df["vigilange_avg"]
+
+	plt.plot(x, y)
+	plt.title("vigilance over time d_p = " + str(df["predation_risk"]))
+	plt.xlabel("time (mins)")
+	plt.ylabel("vigilance")
+	plt.show()
+
+def plot_D(df):
+	x = df["time"]
+	y = df["group_size_prey"]
+
+	plt.plot(x, y)
+	plt.title("vigilance over time d_p = " + str(df["predation_risk"]))
+	plt.xlabel("time (mins)")
+	plt.ylabel("group size prey")
+	plt.show()
