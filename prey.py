@@ -239,7 +239,7 @@ class PreyAgent(TypedAgent):
         if self.detected_predator != False:
             self.state = Prey_State.FLEEING
             self.flee()
-            self.new_move()
+            # self.new_move()
 
         self.check_group()
         # elif neighbour.get_type() == "predator":
@@ -512,13 +512,16 @@ class PreyAgent(TypedAgent):
         # Get new position and make sure it is on the grid
         if (self.v_hat[0] + self.v_hat[1] != 0.0):
             new_position = self.dm * self.v_hat + self.position
+            print(" self.v_hat[0] + self.v_hat[1] != 0.0 ", self.v_hat )
         else:
             # self.v_hat = np.array([self.pm, self.pm])
+            print("self.pm", self.pm)
             self.v_hat = np.concatenate((self.pm, self.pm))
+            print("v_hat ", self.v_hat)
             new_position = self.dm * self.v_hat + self.position
-        # print("v_hat is ", self.v_hat)
-        # print("dm is ", self.dm)
-        # print("new position is", new_position)
+        print("v_hat is ", self.v_hat)
+        print("dm is ", self.dm)
+        print("new position is", new_position)
         # TODO Rounding is causing problems but not rounding causes issues in the get_neighbour calls
         new_position_rounded = new_position
         # Set new pos
