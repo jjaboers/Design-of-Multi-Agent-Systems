@@ -17,6 +17,7 @@ class Model(mesa.Model):
     def __init__(self, N, width, height, attack_distance, evolve):
         super().__init__()
         # agent counts
+        self.step_nr = 0
         self.num_prey_agents = int(2*N/3)
         self.num_predator_agents = int(N/3)
         self.num_resources = width * height * 0.535  # factor found in paper
@@ -57,6 +58,7 @@ class Model(mesa.Model):
             self.schedule.remove(x)
             self.remove_agents_food.remove(x)
         # print("step in main:", self.n_agents_per_type)
+        self.step_nr += 1
 
     def create_prey(self, num_prey_agents):
         # Create prey agents
@@ -188,3 +190,6 @@ class Model(mesa.Model):
     
     def get_prey(self):
         return self.prey
+    
+    def get_global_overview(self):
+        return self.data_collector.get_global_overview()

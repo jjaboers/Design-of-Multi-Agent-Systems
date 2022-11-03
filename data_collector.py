@@ -1,7 +1,5 @@
 from mesa.datacollection import DataCollector as DC
 import pandas as pd
-import prey 
-import predator
 
 
 model_reporters = {
@@ -21,15 +19,36 @@ class DataCollector(DC):
 			agent_reporters = agent_reporters)
 		self.evolvable_params_prey = pd.DataFrame()
 		self.evolvable_params_predator = pd.DataFrame()
+		self.global_overview = pd.DataFrame(columns=["predation_risk", "vigilance_total", "vigilance_avg", "time", "group_size_prey"])
 		#  Initial dataf
 		self.evolvable_params_prey.insert(loc = 0, column="id", value=-1)
 		self.evolvable_params_predator.insert(loc = 0, column="id", value=-1)
-
+		self.model = model
 
 	def collect(self, model):
 		super().collect(model)
 		self.record_evolvable_params(model)
 	
+	def record_global_overview(self, model):
+		vigilance = 0
+		prey_agents = model.get_prey()
+		for prey in prey_agents:
+			vigilance += prey.pv
+		predation = len(model.get_predators())
+		time = model.step_nr
+		group_sz_prey = len(prey_agents)
+		data = {	"predation_risk" : predation,
+					"vigilance_total" : vigilance,
+					"vigilance_avg" : vigilance / group_sz_prey, 
+					"time"			: time,
+					"group_size_prey" : group_sz_prey
+				}
+		row = pd.DataFrame(data)
+		self.global_overview = pd.concat([self.global_overview, row])
+
+	def get_global_overview(self):
+		return self.global_overview
+
 	def record_evolvable_params(self, model):
 		agents = model.schedule.agent_buffer()
 		for agent in agents:
@@ -55,3 +74,4 @@ class DataCollector(DC):
 				
 				df = pd.DataFrame([pred_dict])
 				self.evolvable_params_predator = pd.concat([self.evolvable_params_predator, df])
+	
