@@ -684,10 +684,9 @@ class PreyAgent(TypedAgent):
         return self.state != Prey_State.DEAD
 
     def die(self):
-        super().die()
-        print("DEAD")
         self.state = Prey_State.DEAD
         self.model.num_prey_agents -= 1
-        # TODO this does nothing
-        self.model.prey
+        self.model.grid.remove_agent(self)
+        super().die()
+        print("DEAD")
         return

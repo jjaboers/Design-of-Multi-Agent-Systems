@@ -241,7 +241,9 @@ class PredatorAgent(TypedAgent):
         if self.energy < self.max_energy:
             self.energy = self.max_energy
         self.target.state = Prey_State.DEAD
-        self.target.die()
+        print("taget ", self.target)
+        if self.target.is_alive == True:
+            self.target.die()
         self.target = None
         # self.model.schedule.remove(self.target)
         # self.model.grid.remove_agent(self.target)
@@ -442,6 +444,7 @@ class PredatorAgent(TypedAgent):
 
     def die(self):
         super().die()
+        self.model.num_predator_agents -= 1
         self.set_state(Predator_State.DEAD)
 
     # def reproduce(self):
