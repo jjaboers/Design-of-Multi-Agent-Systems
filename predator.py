@@ -282,16 +282,17 @@ class PredatorAgent(TypedAgent):
         vy = self.direction[1]
         vx = vx * math.cos(t) - vy * math.sin(t)
         vy = vx * math.cos(t) + vy * math.sin(t)
-        self.direction = [vx, vy]
+        self.direction = np.array([vx, vy])
 
         # Get new position and make sure it is on the grid
         if (self.direction[0] + self.direction[1] != 0.0):
-            new_position = self.max_speed * self.direction + self.position
+            print("shapes: {0}, {1}, {2}".format(self.max_speed, self.direction, self.position))
+            new_position = self.max_speed * self.direction + current_position
         else:
             # self.v_hat = np.array([self.pm, self.pm])
             self.direction = np.random.random(2)
             self.direction /= np.linalg.norm(self.direction)
-            new_position = self.max_speed * self.direction + self.position
+            new_position = self.max_speed * self.direction + current_position
         new_position_rounded = new_position
         # Set new pos
         if (self.model.grid.out_of_bounds(new_position_rounded)):
