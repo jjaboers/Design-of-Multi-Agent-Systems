@@ -37,6 +37,7 @@ class PredatorAgent(TypedAgent):
         self.model = model
         self.nearby_predators = []
         self.nearby_prey = []
+        self.evolve = evolve
 
         # constants-------------------------------------------------------------
         # called eM in paper
@@ -79,8 +80,8 @@ class PredatorAgent(TypedAgent):
         # evolvable parameters--------------------------------------------------
         self.r_repulsion = params["r_repulsion"]
         self.r_attraction = params["r_attraction"]
-        self.max_angle_attraction = params["max_angle_attraction"]
-        self.min_angle_attraction = params["min_angle_attraction"]
+        self.angle_repulsion = params["angle_repulsion"]
+        self.angle_attraction = params["angle_attraction"]
         # evolvable parameters--------------------------------------------------
 
         # predator specific parameters------------------------------------------
@@ -91,9 +92,11 @@ class PredatorAgent(TypedAgent):
 
     # TODO check duration of step as age is in minutes
     def step(self):
-        if self.age >= self.max_age:
-            self.die()
-        # TODO implement death_rate
+        if self.evolve:
+            if self.age >= self.max_age:
+                self.die()
+            # TODO implement death_rate
+            self.reproduce()
         if self.state == Predator_State.DEAD:
             return
         elif self.state == Predator_State.SEARCHING:
@@ -124,8 +127,8 @@ class PredatorAgent(TypedAgent):
             # moore=True,
             # include_center=False)
         # new_position = self.random.choice(possible_steps)
-        new_position = ((self.position[0] + np.random.random() * self.max_speed).round(decimals=2),
-                        (self.position[1] + np.random.random() * self.max_speed).round(decimals=2))
+        new_position = (round((self.position[0] + np.random.random() * self.max_speed), 2),
+                        round((self.position[1] + np.random.random() * self.max_speed), 2))
         # print(new_position)
         self.move(new_position)
 
@@ -137,7 +140,7 @@ class PredatorAgent(TypedAgent):
         if self.target.is_safe:
             self.set_state(Predator_State.SEARCHING)
             return
-        if dist(self.position, self.target.get_position()) <= self.reach:
+        if dist(self.position, self.target.get_position()) <= self.attack_distance:
             self.set_state(Predator_State.EATING)
             return
 
@@ -172,6 +175,8 @@ class PredatorAgent(TypedAgent):
 
     def eat(self):
         self.energy += self.target.get_energy()
+        print("target is ", self.target)
+        print(len(self.target))
         if self.energy < self.max_energy:
             self.energy = self.max_energy
         self.target.set_state(Prey_State.DEAD)
@@ -181,7 +186,7 @@ class PredatorAgent(TypedAgent):
     # TODO implement repulsion etc
 
     def move(self, new_position):
-        print(new_position)
+        print("new_position: ", new_position)
         self.model.grid.move_agent(self, new_position)
         self.set_position(new_position)
 
@@ -201,7 +206,16 @@ class PredatorAgent(TypedAgent):
     # asexual reproduction
 
     def reproduce(self):
-        pass
+        if self.energy < self.reproduction_requirement:
+            return
+        self.energy -= self.reproduction_cost
+        params = predator_params.mutate_params(self.params)
+        self.model.create_new_predator(params)
+        # if self.evolve:
+        #     params = predator_params.mutate_params(self.params)
+        #     self.model.create_new_predator(params)
+        # else:
+        #     self.model.create_new_predator(self.params)
 
     def die(self):
         super().die()
