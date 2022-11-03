@@ -5,10 +5,62 @@ from TypedAgent import TypedAgent
 from prey import Prey_State
 import predator_params
 from scipy.spatial.distance import euclidean as dist
-import random
+import setup
+from scipy.stats import truncnorm
+from copy import deepcopy
 import math
+import random
 # searching is roaming while scanning is looking
 
+def trunc_normal(lower, upper, sd, mu):
+    r = truncnorm.rvs(
+        (lower - mu) / sd, (upper - mu) / sd, loc=mu, scale=sd, size=1)
+    return r
+
+
+def mutate(params):
+    # print("params are " , params)
+    for parameter in params:
+        if random.random() < 0.05:
+            if "zr" in parameter:
+                params[parameter] = trunc_normal(0, 50, 10, params[parameter])
+            elif "za" in parameter:
+                params[parameter] = trunc_normal(
+                    params["zr"], 50, 10, params[parameter])
+            elif "a" in parameter:
+                params[parameter] = trunc_normal(0, 360, 72, params[parameter])
+            elif "tp" in parameter:
+                pass
+            elif "tv" in parameter:
+                params[parameter] = trunc_normal(
+                    0.167, 1.99, 0.4, params[parameter])
+            elif "tm" in parameter:
+                params[parameter] = trunc_normal(
+                    0.167, 1.99, 0.4, params[parameter])
+            elif "p" in parameter:
+                params[parameter] = trunc_normal(0, 1, 0.2, params[parameter])
+            # elif "n" in parameter:
+            #     pass
+            elif "dm" in parameter:
+                params[parameter] = trunc_normal(0, 100, 3, params[parameter])
+            elif "pv" in parameter:
+                params[parameter] = trunc_normal(0, 1, 0.2, params[parameter])
+            elif "pm" in parameter:
+                params[parameter] = trunc_normal(0, 1, 0.2, params[parameter])
+            elif "pse" in parameter:
+                params[parameter] = trunc_normal(0, 1, 0.2, params[parameter])
+            elif "psn" in parameter:
+                params[parameter] = trunc_normal(0, 1, 0.2, params[parameter])
+            elif "pmtf" in parameter:
+                params[parameter] = trunc_normal(0, 1, 0.2, params[parameter])
+            elif "ar" in parameter:
+                params[parameter] = trunc_normal(0, 360, 72, params[parameter])
+            elif "aa" in parameter:
+                params[parameter] = trunc_normal(0, 360, 72, params[parameter])
+            elif "nr" in parameter:
+                params[parameter] = trunc_normal(0, 100, 1, params[parameter])
+        # return at the end modified params
+        return params
 
 class Predator_State(Enum):
     SEARCHING = 1
@@ -370,7 +422,7 @@ class PredatorAgent(TypedAgent):
         if self.energy < self.reproduction_requirement:
             return False
         self.energy -= self.reproduction_cost
-        params = predator_params.mutate_params(self.params)
+        params = predator_params.mutate_params(deepcopy(self.params))
         self.model.create_new_predator(params)
         return True
         # if self.evolve:
@@ -382,3 +434,29 @@ class PredatorAgent(TypedAgent):
     def die(self):
         super().die()
         self.set_state(Predator_State.DEAD)
+
+    # def reproduce(self):
+    #     # Reproduction
+    #     self.energy = self.energy - self.max_energy / 2
+    #     #print("self energy step1 ", self.energy)
+    #     # TODO params is the baseclass name maybe use evolvable
+    #     child_params = mutate(deepcopy(self.evolvable_params))
+    #     #print("child params ", child_params)
+    #     self.model.create_new_prey(child_params)
+    #     #print("created new prey!!!")
+
+    def force_birth(self):
+        n = 5
+        # print("self energy step force birth ", self.energy)
+        summed_energy_neighbours = 0
+        for agent in self.model.grid.get_neighbors((int(setup.GRID_WIDTH/2), int(setup.GRID_HEIGHT/2)),
+                                                   include_center=True,
+                                                   radius=setup.GRID_WIDTH+1):
+            if agent.type == "prey":
+                # print("agent energy ", agent.energy)
+                summed_energy_neighbours += agent.energy
+        summed_energy_neighbours = max(summed_energy_neighbours, 1)
+        prob_to_birth = math.pow(self.energy / summed_energy_neighbours, n)
+        # print(" prob to birth ", str(prob_to_birth))
+        if np.random.random() > prob_to_birth:
+            self.reproduce()

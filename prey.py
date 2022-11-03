@@ -107,7 +107,7 @@ class PreyAgent(TypedAgent):
         # default_params["max_neighbour_awareness"] * \
         # setup.PROPORTION if default_params["max_neighbour_awareness"] * \
         # setup.PROPORTION > 1 else 1
-        self.h = default_params["h"] if default_params["h"] > 5 else 5
+        self.h = default_params["h"] * setup.PROPORTION if default_params["h"] > 5 else 5
         self.N = default_params["N"]
         self.em = default_params["em"]
         # self.max_energy = default_params["max_energy"] * setup.PROPORTION
@@ -144,9 +144,9 @@ class PreyAgent(TypedAgent):
         self.tp = evolvable_params["tp"]  # flee duration, minimum 0, sd = 5
         # grouping
         # repulsion zone, between 0 and 50, sd = 10
-        self.zr = evolvable_params["zr"]
+        self.zr = evolvable_params["zr"] * setup.PROPORTION
         # attraction zone, between zr and 50, sd = 10
-        self.za = evolvable_params["za"]
+        self.za = evolvable_params["za"] * setup.PROPORTION
         # maximum turning angle for attraction, between 0 and 360, sd = 72
         self.aa = evolvable_params["aa"]
         # maximum turning angle for repulsion, between 0 and 360, sd = 72
@@ -156,7 +156,7 @@ class PreyAgent(TypedAgent):
         # move duration, between 0.167 and 1.99, sd = 0.4
         self.tm = evolvable_params["tm"]
         # move distance, minimum 0, sd = 3
-        self.dm = evolvable_params["dm"]
+        self.dm = evolvable_params["dm"] * setup.PROPORTION * 10
         # move angle, between 0 and 360, sd = 72
         self.am = evolvable_params["am"]
         # foraging
@@ -372,7 +372,7 @@ class PreyAgent(TypedAgent):
             if self.aa < self.di:
                 self.di = self.aa
         new_position = self.search_space()
-        # print(new_position)
+        print("new position" , new_position)
         self.model.grid.move_agent(self, new_position)
         self.set_position(new_position)
 
@@ -380,7 +380,7 @@ class PreyAgent(TypedAgent):
 
     def new_move(self):
         # TODO how to get neighbours, but only of class prey, current idea isn't efficent
-        print("NEW_MOVE", self.position)
+        print("old position", self.position)
         # Grouping params
         # get number of actual neighbors within zones
         d_hat = np.array([0, 0])
@@ -415,22 +415,6 @@ class PreyAgent(TypedAgent):
                     za_agents.append(x)
             # actual neighbours in alignment and attraction zone
             # na = count_neighbours - count_neighbours_repulsed
-
-        # TODO: the variables are never used although they are calculated. There's nothing in the paper indicating that these steps must be done
-        # count_neighbours = 0
-        # for x in self.model.grid.get_neighbors(pos, radius=self.zl, include_center=False):
-        #     if x.type == "prey":
-        #         count_neighbours += 1
-        # # actual neighbours in alignment zone
-        # nl = count_neighbours - count_neighbours_repulsed
-        #
-        # count_neighbours = 0
-        # for x in self.model.grid.get_neighbors(pos, radius=self.za, include_center=False):
-        #     if x.type == "prey":
-        #         count_neighbours += 1
-        # # actual neighbours in alignment and attraction zone
-        # na = count_neighbours - count_neighbours_repulsed
-
         # Grouping
         if nrz >= self.nr:
             sum0 = np.array([0, 0])
@@ -490,13 +474,13 @@ class PreyAgent(TypedAgent):
         if v_abs == 0.0:
             angle = round(random.uniform(0, math.pi), 2)
         else:
-            print("vabs, dot prod, d abs", v_abs, dot_product, d_abs)
-            print("x for acos", dot_product / v_abs * d_abs)
+            # print("vabs, dot prod, d abs", v_abs, dot_product, d_abs)
+            # print("x for acos", dot_product / v_abs * d_abs)
             x = round(dot_product / v_abs * d_abs, 2)
-            print(x)
+            # print(x)
             angle = math.acos(x)
-            print("angle")
-            print(angle)
+            # print("angle")
+            # print(angle)
             # convert to degrees, ensure positive
             angle = abs(angle * (180.0 / math.pi))
 
@@ -532,19 +516,20 @@ class PreyAgent(TypedAgent):
             # self.v_hat = np.array([self.pm, self.pm])
             self.v_hat = np.concatenate((self.pm, self.pm))
             new_position = self.dm * self.v_hat + self.position
-        print("v_hat is ", self.v_hat)
-        print("dm is ", self.dm)
-        print("new position is", new_position)
+        # print("v_hat is ", self.v_hat)
+        # print("dm is ", self.dm)
+        # print("new position is", new_position)
         # TODO Rounding is causing problems but not rounding causes issues in the get_neighbour calls
         new_position_rounded = new_position
         # Set new pos
-        print("out of bounds? ", new_position_rounded)
+        # print("out of bounds? ", new_position_rounded)
         if (self.model.grid.out_of_bounds(new_position_rounded)):
             new_position_rounded = self.model.grid.torus_adj(
                 new_position_rounded)
         self.model.grid.move_agent(self, new_position_rounded)
-        print("position : ", self.position)
+        print("old position : ", self.position)
         print("new pos: ", self, new_position_rounded)
+        print("move dist ", self.dm)
         self.position = (tuple(new_position_rounded))
         # Duration
         self.current_action_time_remaining = self.dm * self.tm
@@ -668,6 +653,7 @@ class PreyAgent(TypedAgent):
         self.current_action_time_remaining = self.current_action_time_remaining - self.reaction_time
 
     def reproduce(self):
+        print("reproducing")
         # Reproduction
         # neighbours = self.model.grid.get_neighbors(self.position, include_center=True)
         # n_children = int((len(neighbours)/2))

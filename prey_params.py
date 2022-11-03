@@ -1,6 +1,7 @@
 import setup
 import numpy as np
 import random
+from copy import deepcopy
 
 default_params_prey = {
     "position": (random.randrange(setup.GRID_WIDTH), random.randrange(setup.GRID_HEIGHT)),
@@ -9,7 +10,7 @@ default_params_prey = {
     # "dr": 0.9,  # individual reach
     "dr": 1,  # individual reach
     "max_speed": 0.1,
-    "max_neighbour_awareness": 50,  # meters
+    "max_neighbour_awareness": 5,  # meters
     "h": 5,  # half-max distance detect predator
     "N": 5,  # scaling for predator detection
     "em": 1,  # metabolism
@@ -71,8 +72,8 @@ evolvable_params_prey = {
 
 
 def get_default_params_prey():
-    return default_params_prey.copy()
+    return deepcopy(default_params_prey)
 
 
 def get_evolvable_params_prey():
-    return evolvable_params_prey.copy()
+    return deepcopy(evolvable_params_prey)

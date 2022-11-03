@@ -34,7 +34,6 @@ default_params_predator = {
 }
 # Also works with initialization if you pass default params
 def mutate_params(params):
-    params = deepcopy(params)
     if random.random() < 0.05:
         params["t_food_scan"] = random.uniform(0.167, 1.99, 1)
     if random.random() < 0.05:
