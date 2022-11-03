@@ -28,9 +28,10 @@ class Model(mesa.Model):
 
         # init agents
         self.attack_distance = attack_distance
+        self.evolve = evolve
         self.create_prey(self.num_prey_agents)
         self.create_predators(self.num_predator_agents,
-                              self.attack_distance, evolve)
+                              self.attack_distance, self.evolve)
         self.create_food(self.num_resources)
 
         # the schedule alredy has all agents, this might make every
@@ -93,7 +94,8 @@ class Model(mesa.Model):
         self.num_prey_agents += 1
 
     def create_new_predator(self, params):
-        agent = PredatorAgent(self.next_id(), self, params)
+        agent = PredatorAgent(self.next_id(), self,
+                              self.attack_distance, params, evolve=self.evolve)
         agent.set_energy(agent.max_energy / 2)
         self.schedule.add(agent)
         x = random.uniform(0, self.grid.x_max)
