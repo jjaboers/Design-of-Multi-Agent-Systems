@@ -17,7 +17,7 @@ default_params_predator = {
     "max_neighbour_awareness":   50, # TODO add to evolvable
     "energy_cost":   1,
     "max_energy":   100000,
-    "death_rate":   0.1,
+    "death_rate":   0.01,
     "max_age":   10512000,   # 60*24*365*20 = 20years in mins
     "mutation_rate":   0.05,
     "reproduction_requirement":   100000,   # max energy

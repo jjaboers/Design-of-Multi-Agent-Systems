@@ -74,8 +74,8 @@ class Model(mesa.Model):
 
         for i in range(num_prey_agents):
 
-            a = PreyAgent(self.ids, self)
-            self.ids += 1
+            a = PreyAgent(self.next_id(), self)
+
             self.schedule.add(a)
 
 
@@ -92,8 +92,8 @@ class Model(mesa.Model):
 
     def create_new_prey(self, evolv_params):
 
-        a = PreyAgent(self.ids, self, evolvable_params=evolv_params)
-        self.ids += 1
+        a = PreyAgent(self.next_id(), self, evolvable_params=evolv_params)
+
         a.set_energy(a.max_energy / 2)
         self.schedule.add(a)
 
@@ -109,9 +109,9 @@ class Model(mesa.Model):
 
     def create_new_predator(self, params):
 
-        agent = PredatorAgent(self.ids, self,
+        agent = PredatorAgent(self.next_id(), self,
                               self.attack_distance, params, evolve=self.evolve)
-        self.ids += 1
+
         agent.set_energy(agent.max_energy / 2)
         self.schedule.add(agent)
         x = random.uniform(0, self.grid.x_max)
@@ -127,9 +127,8 @@ class Model(mesa.Model):
         for i in range(self.num_prey_agents+1, self.num_prey_agents + num_predator_agents):
             if evolve:
                 params = pred_params.mutate_params(params)
-            a = PredatorAgent(self.ids, self,
+            a = PredatorAgent(self.next_id(), self,
                               attack_distance, evolve=evolve)
-            self.ids += 1
             self.schedule.add(a)
             # Add the agent to a random grid cell
             x = self.random.random() * self.grid.x_max
@@ -144,8 +143,7 @@ class Model(mesa.Model):
     def create_food(self, num_resources):
         # Place food items
         for resource in range(int(num_resources)):
-            a = FoodAgent(self.ids, self)
-            self.ids += 1
+            a = FoodAgent(self.next_id(), self)
             self.schedule.add(a)
             x = self.random.random() * self.grid.x_max
             y = self.random.random() * self.grid.y_max

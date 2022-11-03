@@ -156,8 +156,8 @@ class PredatorAgent(TypedAgent):
         if self.evolve:
             too_old = self.age >= self.max_age
             starved = self.energy <= 0
-            random_death = np.random.random() < self.death_rate
-            if too_old or starved or random_death:
+            # random_death = np.random.random() < self.death_rate
+            if too_old or starved:
                 self.die()
                 return
             scanning = self.state == Predator_State.SCANNING
