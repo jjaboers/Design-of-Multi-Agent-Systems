@@ -9,12 +9,12 @@ SCALED_FLAG = False
 default_params_predator = {
     "position":   (0, 0),
     "initial_energy":   100000,
-    "search_angle":   250,   # degrees TODO implement
+    "search_angle":   250,   
     "t_food_scan":   (0.167 + 1.99) / 2,
     "alignment":   50, 
     "reach":   1.0,
-    "max_speed":   2,   # TODO find right val
-    "max_neighbour_awareness":   50, # TODO add to evolvable
+    "max_speed":   2,   
+    "max_neighbour_awareness":   50, 
     "energy_cost":   1,
     "max_energy":   100000,
     "death_rate":   0.01,

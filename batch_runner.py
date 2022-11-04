@@ -41,11 +41,7 @@ class BatchRun:
 				df.to_csv("./results/batch{0}_{1}.csv".format(batch_idx, self.n_time_steps))
 				
 			print("batch " + str(batch_idx) + " completed in: " + str(time.time() - t_start) + " s")
-		# if save:
-		# 	batch_idx = 0
-		# 	for df_ in self.batch_results:
-		# 		df_.to_csv("./results/batch{0}.csv".format(batch_idx))
-		# 		batch_idx += 1
+
 
 
 	def average_entries(self, dfs):
@@ -58,7 +54,7 @@ class BatchRun:
 			time = 0
 			group_size_prey = 0.0
 			for df in dfs:
-				predation_risk += df["predation_risk"].to_numpy()[row] # TODO might be stupid to average out
+				predation_risk += df["predation_risk"].to_numpy()[row] # might be stupid to average out
 				vigilance_total += df["vigilance_total"].to_numpy()[row]
 				vigilance_avg += df["vigilance_avg"].to_numpy()[row]
 				time += df["time"].to_numpy()[row] # kind of stupid I know
@@ -76,7 +72,6 @@ class BatchRun:
 				}
 			row_add = pd.DataFrame(data, index=[0])
 			final_df = pd.concat([final_df, row_add])
-			# print(final_df)
 		return final_df
 
 
