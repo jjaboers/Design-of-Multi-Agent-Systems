@@ -1,9 +1,6 @@
 import mesa
 from copy import deepcopy
-# TODO
-# 	- add energy
-# 	- add all common params
-# 	- 
+
 class TypedAgent(mesa.Agent):
 	"""An agent that is a predator"""
 	position = None

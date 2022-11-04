@@ -34,7 +34,6 @@ def trunc_normal(lower, upper, sd, mu):
 
 
 def mutate(params):
-    #print("params are " , params)
     for parameter in params:
         if random.random() < 0.05:
             if "zr" in parameter:
@@ -84,7 +83,6 @@ class PreyAgent(TypedAgent):
     def __init__(self, unique_id, model, default_params=prey_params.default_params_prey, evolvable_params=prey_params.evolvable_params_prey):
         super().__init__(unique_id, model)
         self.type = "prey"
-        # self.model = model
         self.state = Prey_State.NOTHING
         self.previous_state = Prey_State.NOTHING
         self.current_action_time_remaining = 0
@@ -104,14 +102,11 @@ class PreyAgent(TypedAgent):
         self.dr = default_params["dr"]
         self.max_speed = default_params["max_speed"]
         self.max_neighbour_awareness = default_params["max_neighbour_awareness"]
-        # default_params["max_neighbour_awareness"] * \
-        # setup.PROPORTION if default_params["max_neighbour_awareness"] * \
-        # setup.PROPORTION > 1 else 1
+
         self.h = default_params["h"] * \
             setup.PROPORTION if default_params["h"] > 5 else 5
         self.N = default_params["N"]
         self.em = default_params["em"]
-        # self.max_energy = default_params["max_energy"] * setup.PROPORTION
         self.max_energy = 100000 * setup.PROPORTION
         self.death_rate = default_params["death_rate"]
         self.mutation_rate = default_params["mutation_rate"]
@@ -188,17 +183,14 @@ class PreyAgent(TypedAgent):
 
     # STEP FUNCTION
     def step(self):
-        # print("prey step function, state: ", self.state)
         self.age = self.age + 1
         self.nrz = 0
         self.energy = self.energy - self.em
 
         if self.energy <= self.min_energy:
-            # print("min energy ", self.energy)
             self.state = Prey_State.DEAD
 
         if self.age <= 0:
-            # print("age ", self.max_age)
             self.state = Prey_State.DEAD
 
         if self.state == Prey_State.DEAD:
@@ -216,8 +208,6 @@ class PreyAgent(TypedAgent):
             elif getattr(self.model, 'num_prey_agents') < 10:
                 self.force_birth()
 
-        # TODO add reproduction and death? (page 9 paper)
-        # TODO read closely 1.7.1, should this be done in model? ("model updating schedule")
 
         # Check if current action is over
         if self.current_action_time_remaining < 0:
@@ -234,14 +224,12 @@ class PreyAgent(TypedAgent):
             self.new_move()
 
         self.check_group()
-        # elif neighbour.get_type() == "predator":
 
         # complete current action
         if self.state == Prey_State.MOVING:
             self.new_move()
         elif self.state == Prey_State.FOODSCAN:
             self.food_target = self.foodscan()
-            # print("found food target", self.food_target)
             if self.food_target == None:
                 self.new_move()
         elif self.state == Prey_State.MOVETOFOOD:  # braek out of movetofood if at food
@@ -249,10 +237,8 @@ class PreyAgent(TypedAgent):
                 self.state = Prey_State.EATING
                 self.current_action_time_remaining = self.te
             else:
-                # print("trying to move to food")
                 self.move_to_food(self.food_target)
         elif self.state == Prey_State.EATING:
-            # print("am eating")
             if self.food_target != None:
                 self.energy += self.er
                 self.eat(self.food_target)
@@ -266,18 +252,13 @@ class PreyAgent(TypedAgent):
         elif self.state == Prey_State.NOTHING:
             RAND = np.random.rand()
 
-            # if RAND < self.pv or self.is_safe is True:
             if RAND < self.pv:
                 self.state = Prey_State.SCANNING
             else:
                 if self.food_target is not None:
-                    # print("FOOD TARGET distance", self.distance(
-                    #     self.food_target.position))
-                    # print("state is distance  ", self.distance(
-                    #     self.food_target.position), " > ", self.dr)
+                   
                     if self.distance(self.food_target.position) <= self.dr:
-                        # print("state is eating ",
-                        #       self.food_target.position, " < ", self.dr)
+                    
                         self.state = Prey_State.EATING
                         self.current_action_time_remaining = self.te
                     else:
@@ -295,28 +276,22 @@ class PreyAgent(TypedAgent):
                             self.state = Prey_State.FOODSCAN
                         else:
                             self.state = Prey_State.MOVING
-                            # print(self.state)
                     elif self.previous_state == Prey_State.FLEEING:
                         self.state = Prey_State.SCANNING
                     elif self.previous_state == Prey_State.SCANNING:
                         RAND = np.random.rand()
                         if RAND < self.pse:
                             self.state = Prey_State.FOODSCAN
-                            # print(self.state)
                         else:
                             self.state = Prey_State.MOVING
-                            # print(self.state)
                     elif self.previous_state == Prey_State.NOTHING:
                         RAND = np.random.rand()
                         if RAND < self.pse:
                             self.state = Prey_State.FOODSCAN
-                            # print(self.state)
                         else:
                             self.state = Prey_State.MOVING
-                            # print(self.state)
-        # print("final state is ", self.state)
 
-    # TODO choose random parent, force birth with no energy cost --> possibly actually should do that in model?
+
 
     # PREY ACTIONS
     # o = facing N, 90  facing right/E, 180 facing S, 270 = facing L/W
@@ -340,7 +315,6 @@ class PreyAgent(TypedAgent):
 
     def move(self):
         # Grouping
-        # print("PREY IS MOVING TO ")
         # define self.direction of facing the group
         if self.nrz >= self.nr:  # repulsion
             if self.ar < self.di:
@@ -349,15 +323,12 @@ class PreyAgent(TypedAgent):
             if self.aa < self.di:
                 self.di = self.aa
         new_position = self.search_space()
-        # print("new position", new_position)
         self.model.grid.move_agent(self, new_position)
         self.set_position(new_position)
 
         self.current_action_time_remaining = self.dm * self.tm
 
     def new_move(self):
-        # TODO how to get neighbours, but only of class prey, current idea isn't efficent
-        # print("old position", self.position)
         # Grouping params
         # get number of actual neighbors within zones
         d_hat = np.array([0, 0])
@@ -371,7 +342,7 @@ class PreyAgent(TypedAgent):
         za_agents = []
         zl_agents = []
         nrz = 0
-        # TODO: it's a more time complexity friendly way of impelemtnign the todo down, but there's no point to it
+  
         for x in self.model.grid.get_neighbors(pos, radius=max_radius, include_center=False):
             if x.type == "prey":
                 distance = self.distance(x.position)
@@ -383,22 +354,17 @@ class PreyAgent(TypedAgent):
                 distance = self.distance(x.position)
                 if distance <= self.zl:
                     zl_agents.append(x)
-            # actual neighbours in alignment zone
-            # nl = count_neighbours - count_neighbours_repulsed
-            # count_neighbours = 0
+     
             if x.type == "prey":
                 distance = self.distance(x.position)
                 if distance <= self.za:
                     za_agents.append(x)
-            # actual neighbours in alignment and attraction zone
-            # na = count_neighbours - count_neighbours_repulsed
+            
         # Grouping
         if nrz >= self.nr:
             sum0 = np.array([0, 0])
             dist = 0
             abs_dist = 0
-            # for x in self.model.grid.get_neighbors(pos, radius=self.zr, include_center=False):
-            #     if x.type == "prey":
             for x in zr_agents:
                 x_position = np.array([x.position[0], x.position[1]])
                 dist = x_position - current_position
@@ -416,48 +382,33 @@ class PreyAgent(TypedAgent):
             sum1 = np.array([0, 0])
             dist = 0
             abs_dist = 0
-            # for x in self.model.grid.get_neighbors(pos, radius=self.za, include_center=False):
-            #     if x.type == "prey":
             for x in za_agents:
                 x_position = np.array([x.position[0], x.position[1]])
-                # sum1 += (current_position- x_position) / abs(current_position - x_position)
                 dist = current_position - x_position
                 abs_dist = math.sqrt(
                     (dist[0] * dist[0]) + (dist[1] * dist[1]))
                 if abs_dist != 0:
                     sum1 = sum1 + (dist / abs_dist)
             sum2 = np.array([0, 0])
-            # for x in self.model.grid.get_neighbors(pos, radius=self.zl,  include_center=False):
-            #     if x.type == "prey":
             for x in zl_agents:
                 sum2 = np.array(x.v_hat) + sum2
             sums = sum1 + sum2
             abs_sums = math.sqrt((sums[0] * sums[0]) + (sums[1] * sums[1]))
-            # print("invalid true divide")
-            # print(sums, abs_sums)
             if abs_sums != 0:
                 d_hat = - sums / abs_sums
-                # print("d hat", d_hat)
             else:
                 d_hat = np.array([0, 0])
-            # d_hat = (sum1 + sum2) / abs(sum1 + sum2)
 
         # calculate angle between v_hat and d_hat
         dot_product = (self.v_hat[0] * d_hat[0]) + (self.v_hat[1] * d_hat[1])
         v_abs = np.sqrt(
             (self.v_hat[0] * self.v_hat[0]) + (self.v_hat[1] * self.v_hat[1]))
         d_abs = np.sqrt((d_hat[0] * d_hat[0]) + (d_hat[1] * d_hat[1]))
-        # print("d_abs ", d_abs, v_abs, dot_product)
         if v_abs == 0.0:
             angle = round(random.uniform(0, math.pi), 2)
         else:
-            # print("vabs, dot prod, d abs", v_abs, dot_product, d_abs)
-            # print("x for acos", dot_product / v_abs * d_abs)
             x = round(dot_product / v_abs * d_abs, 2)
-            # print(x)
             angle = math.acos(x)
-            # print("angle")
-            # print(angle)
             # convert to degrees, ensure positive
             angle = abs(angle * (180.0 / math.pi))
 
@@ -466,7 +417,6 @@ class PreyAgent(TypedAgent):
         else:
             vx = self.v_hat[0]
             vy = self.v_hat[1]
-            # TODO it says "else turn aR or aA" but I'm not sure how to know which, so currently random?
             if random.random() < 0.5:
                 a = self.ar
             else:
@@ -490,23 +440,17 @@ class PreyAgent(TypedAgent):
         if (self.v_hat[0] + self.v_hat[1] != 0.0):
             new_position = self.dm * self.v_hat + self.position
         else:
-            # self.v_hat = np.array([self.pm, self.pm])
             self.v_hat = np.concatenate((self.pm, self.pm))
             new_position = self.dm * self.v_hat + self.position
-        # print("v_hat is ", self.v_hat)
-        # print("dm is ", self.dm)
-        # print("new position is", new_position)
-        # TODO Rounding is causing problems but not rounding causes issues in the get_neighbour calls
+
         new_position_rounded = new_position
         # Set new pos
-        # print("out of bounds? ", new_position_rounded)
+        
         if (self.model.grid.out_of_bounds(new_position_rounded)):
             new_position_rounded = self.model.grid.torus_adj(
                 new_position_rounded)
         self.model.grid.move_agent(self, new_position_rounded)
-        # print("old position : ", self.position)
-        # print("new pos: ", self, new_position_rounded)
-        # print("move dist ", self.dm)
+
         self.position = (tuple(new_position_rounded))
         # Duration
         self.current_action_time_remaining = self.dm * self.tm
@@ -524,62 +468,30 @@ class PreyAgent(TypedAgent):
                     self.new_move()
 
     def distance(self, otherpos):
-        # print(self.pos, otherpos, " is the position ")
-        # (distance_x, distance_y) = (self.pos[0] - otherpos[0], self.pos[1] - otherpos[1])
+
         dist = pow((self.pos[0] - otherpos[0]), 2) + \
             pow((self.pos[1] - otherpos[1]), 2)
-        # dist = np.sum(np.square(np.array((self.pos)), np.square(np.array((otherpos)))))
-        # print("distance is ", np.sqrt(dist))
+
         return np.sqrt(dist)
 
-    # TODO: should this return chosen fooditem or set a field to this fooditem
-    def foodscan(self):
-        # print("in foodscan")
-        # chosenitem = self.model.fooditems[0]
 
-        # for neighbour in self.model.grid.get_neighbors(self.position, moore=True, include_center=False,
-        #                                                radius=self.max_neighbour_awareness):
-        #     if neighbour.get_type() == "predator":
-        #         predator_distance = self.distance(neighbour.get_position())
-        #         pd = pow(self.h, self.N) / ((pow(predator_distance, self.N)) * pow(self.h, self.N)) * (
-        #                     math.pi / self.av) * (self.tv / self.t_min)
-        #         if pd < random.random():
-        #             self.detected_predator = neighbour
-        #             break
-        #
-        # if self.detected_predator is None:
-        #     self.current_action_time_remaining = self.tv
-        # else:
-        #     self.current_action_time_remaining = random.randint(0, self.tv)
+    def foodscan(self):
+        
 
         chosenitems = self.model.grid.get_neighbors(self.position, include_center=False,
                                                     radius=self.max_neighbour_awareness)
-        # print("max neigh", self.max_neighbour_awareness)
         chosenitem_ = None
 
         for chosenitem in chosenitems:
-            # print("prey pos", self.position)
-            # print(chosenitem.position)
             if chosenitem.type == "food":
                 chosenitem_ = chosenitem
                 break
-        # find all fooditems in range
-        # for fooditem in range(len(self.model.fooditems)):
-        #     p = (self.tf * 60) / (
-        #             np.pi * pow(self.df, 2) * (self.af / np.pi))  # we assume this function represents the vision
-        #     RAND = random.random()
-        #     if RAND < p:
-        #         if self.distance(fooditem.pos) < self.distance(chosenitem.pos):
-        #             chosenitem = fooditem
+
 
         return chosenitem_
 
-    # TODO related to foodscan, should this have a fooditem as argument or should it move to variable "self.closestfood" or st
     def move_to_food(self, food_item):
-        # new_position = food_item.position - \
-        # (self.dr * abs(food_item.position - self.position)) / 2
-        # dif = (abs(food_item.position[0] - self.position[0] / 2), abs(food_item.position[1] - self.position[1] / 2))
-        # new_position = food_item.position - (self.dr * dif)
+
         '''
         x = food_item.position[0] - self.dr * \
             abs(food_item.position[0] - self.position[0] / 2)
@@ -593,22 +505,19 @@ class PreyAgent(TypedAgent):
         new_position = (x, y)
         self.position = new_position
         self.current_action_time_remaining = self.distance(new_position)
-        # self.new_move()
+        
 
     def eat(self, food_item):
-        # print("Nom")
+        
         # resource items that are eaten disappear immediately (no half eating possible)
         self.model.remove_agents_food.append(food_item)
         # remove the agent from the grid, immediately to prevent it being eaten twice
         self.model.grid.remove_agent(food_item)
-        #self.current_action_time_remaining = self.current_action_time_remaining - self.te
 
     def scan(self):
-        # print("scanning")
         for neighbour in self.model.grid.get_neighbors(self.position, include_center=False,
                                                        radius=self.max_neighbour_awareness):
             if neighbour.get_type() == "predator":
-                #("detect predator, with h ", self.h)
                 predator_distance = self.distance(neighbour.position)
                 pd = pow(self.h, self.N) / ((pow(predator_distance, self.N)) * pow(self.h, self.N)) * (
                     math.pi / self.av) * (self.tv / self.t_min)
@@ -628,38 +537,18 @@ class PreyAgent(TypedAgent):
         self.current_action_time_remaining = self.current_action_time_remaining - self.reaction_time
 
     def reproduce(self):
-        # print("reproducing")
         # Reproduction
-        # neighbours = self.model.grid.get_neighbors(self.position, include_center=True)
-        # n_children = int((len(neighbours)/2))
-        # self.model.create_prey(n_children)
+       
         # energy changes due to birth
         self.energy = self.energy - (self.max_energy / 2)
-        # TODO params is the baseclass name maybe use evolvable
         child_params = mutate(deepcopy(self.evolvable_params))
         self.model.create_new_prey(child_params)
-        # a = PreyAgent(getattr(self.model, 'num_prey_agents') + 1, self.model, child_params)
-        # TODO offspring inherit all evolvable parameters + mutate, maybe make functions inherit() and evolve()
+        
 
-    # def force_birth(self):
-    #     n = 5
-    #     #print("self energy step force birth ", self.energy)
-    #     summed_energy_neighbours = 0
-    #     # for agent in self.model.grid.get_neighbors((setup.GRID_WIDTH, setup.GRID_HEIGHT),
-    #     #                                             moore=True, include_center=True,
-    #     #                                             radius=self.max_neighbour_awareness):
-    #     #     print("agent energy ", agent.energy)
-    #     #     summed_energy_neighbours += agent.energy
-    #     # summed_energy_neighbours = max(summed_energy_neighbours, 1)
-    #     # prob_to_birth = math.pow(self.energy / summed_energy_neighbours, n)
-    #     # print(" prob to birth ", str(prob_to_birth))
-    #     # if np.random.random() > prob_to_birth:
-    #     if np.random.random() > 0.5:
-    #         self.reproduce()
+
 
     def force_birth(self):
         n = 5
-        # print("force birth ")
         summed_energy_neighbours = 0
         for agent in self.model.grid.get_neighbors((int(setup.GRID_WIDTH/2), int(setup.GRID_HEIGHT/2)),
                                                    include_center=True,
@@ -682,9 +571,7 @@ class PreyAgent(TypedAgent):
 
     def die(self):
         super().die()
-        # print("DEAD")
         self.state = Prey_State.DEAD
         self.model.num_prey_agents -= 1
-        # TODO this does nothing
         self.model.prey
         return

@@ -59,7 +59,6 @@ class Model(mesa.Model):
     def step(self):
         """Advance the model by one step."""
         self.data_collector.collect(self)
-        # print("Model step function")
 
         # model shuffles the order of the agents, then activates and executes each agent’s step method
         self.schedule.step()
@@ -80,12 +79,9 @@ class Model(mesa.Model):
 
 
             # Add the agent to a random grid cell
-            # cell = mesa.space.Grid.find_empty(self.grid)
             x = self.random.random() * self.grid.x_max
             y = self.random.random() * self.grid.y_max
             pos = np.array((x, y))
-            # self.grid.place_agent(a, (x, y))
-            # mesa.space.Grid.place_agent(self.grid, a, cell)
             self.grid.place_agent(a, pos)
             a.set_position(pos)
             self.num_prey_agents += 1
@@ -101,8 +97,6 @@ class Model(mesa.Model):
         x = self.random.random() * self.grid.x_max
         y = self.random.random() * self.grid.y_max
         pos = np.array((x, y))
-        # self.grid.place_agent(a, (x, y))
-        # mesa.space.Grid.place_agent(self.grid, a, cell)
         self.grid.place_agent(a, pos)
         a.set_position(pos)
         self.num_prey_agents += 1
@@ -134,8 +128,6 @@ class Model(mesa.Model):
             x = self.random.random() * self.grid.x_max
             y = self.random.random() * self.grid.y_max
             pos = np.array((x, y))
-            # self.grid.place_agent(a, (x, y))
-            # mesa.space.Grid.place_agent(self.grid, a, cell)
             self.grid.place_agent(a, pos)
             a.set_position(pos)
             self.num_predator_agents += 1
@@ -148,8 +140,6 @@ class Model(mesa.Model):
             x = self.random.random() * self.grid.x_max
             y = self.random.random() * self.grid.y_max
             pos = np.array((x, y))
-            # self.grid.place_agent(a, (x, y))
-            # mesa.space.Grid.place_agent(self.grid, a, cell)
             self.grid.place_agent(a, pos)
             a.set_position(pos)
             self.num_resources += 1
@@ -198,7 +188,6 @@ class Model(mesa.Model):
             dist = distance.euclidean(pos, agent.get_position())
             if dist <= d_min and dist <= range:
                 ret_agent = agent
-                #  TODO: whats the purpose of this subtraction that's not returned into any variable???
                 d_min = dist
                 break
         return ret_agent

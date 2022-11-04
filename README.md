@@ -1,5 +1,10 @@
 # A multi-agent simulation of predator-prey co-evolution
 
+
+# setting up the environment
+1. conda create env -f environment.yml 
+
+
 ## Running the simulation
 
 ### Run with Python Command

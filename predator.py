@@ -10,58 +10,7 @@ from scipy.stats import truncnorm
 from copy import deepcopy
 import math
 import random
-# searching is roaming while scanning is looking
 
-
-def trunc_normal(lower, upper, sd, mu):
-    r = truncnorm.rvs(
-        (lower - mu) / sd, (upper - mu) / sd, loc=mu, scale=sd, size=1)
-    return r
-
-
-def mutate(params):
-    # print("params are " , params)
-    for parameter in params:
-        if random.random() < 0.05:
-            if "zr" in parameter:
-                params[parameter] = trunc_normal(0, 50, 10, params[parameter])
-            elif "za" in parameter:
-                params[parameter] = trunc_normal(
-                    params["zr"], 50, 10, params[parameter])
-            elif "a" in parameter:
-                params[parameter] = trunc_normal(0, 360, 72, params[parameter])
-            elif "tp" in parameter:
-                pass
-            elif "tv" in parameter:
-                params[parameter] = trunc_normal(
-                    0.167, 1.99, 0.4, params[parameter])
-            elif "tm" in parameter:
-                params[parameter] = trunc_normal(
-                    0.167, 1.99, 0.4, params[parameter])
-            elif "p" in parameter:
-                params[parameter] = trunc_normal(0, 1, 0.2, params[parameter])
-            # elif "n" in parameter:
-            #     pass
-            elif "dm" in parameter:
-                params[parameter] = trunc_normal(0, 100, 3, params[parameter])
-            elif "pv" in parameter:
-                params[parameter] = trunc_normal(0, 1, 0.2, params[parameter])
-            elif "pm" in parameter:
-                params[parameter] = trunc_normal(0, 1, 0.2, params[parameter])
-            elif "pse" in parameter:
-                params[parameter] = trunc_normal(0, 1, 0.2, params[parameter])
-            elif "psn" in parameter:
-                params[parameter] = trunc_normal(0, 1, 0.2, params[parameter])
-            elif "pmtf" in parameter:
-                params[parameter] = trunc_normal(0, 1, 0.2, params[parameter])
-            elif "ar" in parameter:
-                params[parameter] = trunc_normal(0, 360, 72, params[parameter])
-            elif "aa" in parameter:
-                params[parameter] = trunc_normal(0, 360, 72, params[parameter])
-            elif "nr" in parameter:
-                params[parameter] = trunc_normal(0, 100, 1, params[parameter])
-        # return at the end modified params
-        return params
 
 
 class Predator_State(Enum):
@@ -212,7 +161,6 @@ class PredatorAgent(TypedAgent):
 
         self.direction = target_pos - current_pos
         self.direction /= np.linalg.norm(self.direction)
-        # print("direction normalize self.direction 2: ", self.direction)
 
         new_pos = self.max_speed * self.direction + self.position
         dist_travelled = np.linalg.norm(current_pos - new_pos)
@@ -236,17 +184,13 @@ class PredatorAgent(TypedAgent):
             self.set_state(Predator_State.CHASING)
 
     def eat(self):
-        # print("predator eating")
         self.energy += self.target.get_energy()
         if self.energy < self.max_energy:
             self.energy = self.max_energy
         self.target.state = Prey_State.DEAD
-        # print("taget ", self.target)
         if self.target.is_alive == True:
             self.target.die()
         self.target = None
-        # self.model.schedule.remove(self.target)
-        # self.model.grid.remove_agent(self.target)
         self.set_state(Predator_State.SEARCHING)
 
     def find_neighbors_in_range(self):
@@ -293,12 +237,12 @@ class PredatorAgent(TypedAgent):
                 sum_2 += np.array(agent.direction)
                 n_agents_attract += 1
         abs_sum = math.sqrt((sum_0[0] * sum_0[0]) + (sum_0[1] * sum_0[1]))
-        # if n_agents_repulsion_zone >= self.nr: TODO figure this out, what is self.nr???
+   
         if abs_sum != 0:
             d_hat = - sum_0 / abs_sum
         else:
             d_hat = - sum_0
-        # else
+        
         sums = sum_1 + sum_2
         abs_sums = math.sqrt((sums[0] * sums[0]) + (sums[1] * sums[1]))
         if abs_sums != 0:
@@ -306,7 +250,6 @@ class PredatorAgent(TypedAgent):
         else:
             d_hat = np.array([0, 0])
 
-        # print("self.direction, d_hat: ", self.direction, d_hat)
         dot_product = (self.direction[0] * d_hat[0]) + \
             (self.direction[1] * d_hat[1])
         v_abs = np.sqrt(
@@ -327,7 +270,7 @@ class PredatorAgent(TypedAgent):
         else:
             vx = self.direction[0]
             vy = self.direction[1]
-            # TODO it says "else turn aR or aA" but I'm not sure how to know which, so currently random?
+            
             if random.random() < 0.5:
                 a = self.angle_repulsion
             else:
@@ -348,13 +291,10 @@ class PredatorAgent(TypedAgent):
 
         # Get new position and make sure it is on the grid
         if (self.direction[0] + self.direction[1] != 0.0):
-            # print("shapes: {0}, {1}, {2}".format(self.max_speed, self.direction, self.position))
             new_position = self.max_speed * self.direction + current_position
         else:
-            # self.v_hat = np.array([self.pm, self.pm])
             self.direction = np.array([random.random(), random.random()])
             self.direction /= np.linalg.norm(self.direction)
-            # print("direction normalize self.direction 3: ", self.direction)
 
             new_position = self.max_speed * self.direction + current_position
         new_position_rounded = new_position
@@ -388,7 +328,6 @@ class PredatorAgent(TypedAgent):
         self.move((new_position[0], new_position[1]))
 
     def move(self, new_position):
-        # print("new_position: ", new_position)
         self.model.grid.move_agent(self, new_position)
         self.set_position(new_position)
 
@@ -436,39 +375,8 @@ class PredatorAgent(TypedAgent):
         params = predator_params.mutate_params(deepcopy(self.params))
         self.model.create_new_predator(params)
         return True
-        # if self.evolve:
-        #     params = predator_params.mutate_params(self.params)
-        #     self.model.create_new_predator(params)
-        # else:
-        #     self.model.create_new_predator(self.params)
 
     def die(self):
         super().die()
         self.model.num_predator_agents -= 1
         self.set_state(Predator_State.DEAD)
-
-    # def reproduce(self):
-    #     # Reproduction
-    #     self.energy = self.energy - self.max_energy / 2
-    #     #print("self energy step1 ", self.energy)
-    #     # TODO params is the baseclass name maybe use evolvable
-    #     child_params = mutate(deepcopy(self.evolvable_params))
-    #     #print("child params ", child_params)
-    #     self.model.create_new_prey(child_params)
-    #     #print("created new prey!!!")
-
-    def force_birth(self):
-        n = 5
-        # print("self energy step force birth ", self.energy)
-        summed_energy_neighbours = 0
-        for agent in self.model.grid.get_neighbors((int(setup.GRID_WIDTH/2), int(setup.GRID_HEIGHT/2)),
-                                                   include_center=True,
-                                                   radius=setup.GRID_WIDTH+1):
-            if agent.type == "prey":
-                # print("agent energy ", agent.energy)
-                summed_energy_neighbours += agent.energy
-        summed_energy_neighbours = max(summed_energy_neighbours, 1)
-        prob_to_birth = math.pow(self.energy / summed_energy_neighbours, n)
-        # print(" prob to birth ", str(prob_to_birth))
-        if np.random.random() > prob_to_birth:
-            self.reproduce()

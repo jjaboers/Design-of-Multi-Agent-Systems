@@ -9,7 +9,7 @@ class FoodAgent(TypedAgent):
         super().__init__(unique_id, model)
         self.position = (0, 0)
         self.energy_value = 2  # called Er in paper
-        self.regrowth = None  # random timepoint in a year where they regrow
+        self.regrowth = None  
 
     def step(self):
         pass
