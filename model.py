@@ -59,7 +59,7 @@ class Model(mesa.Model):
     def step(self):
         """Advance the model by one step."""
         self.data_collector.collect(self)
-        print("Model step function")
+        # print("Model step function")
 
         # model shuffles the order of the agents, then activates and executes each agent’s step method
         self.schedule.step()

@@ -96,7 +96,7 @@ class PredatorAgent(TypedAgent):
         # set random initial direction
         self.direction = np.array([random.random(), random.random()])
         self.direction /= np.linalg.norm(self.direction)
-        print("direction normalize self.direction: ", self.direction)
+        # print("direction normalize self.direction: ", self.direction)
 
         # constants-------------------------------------------------------------
         # called eM in paper
@@ -146,7 +146,7 @@ class PredatorAgent(TypedAgent):
 
         # predator specific parameters------------------------------------------
         self.attack_distance = attack_distance
-        print("-----------attack distance-------------", attack_distance)
+        # print("-----------attack distance-------------", attack_distance)
         self.prey_detection_range = params["prey_detection_range"]
         self.attack_speed = params["attack_speed"]
         # predator specific parameters------------------------------------------
@@ -192,7 +192,7 @@ class PredatorAgent(TypedAgent):
         self.group_move(predators_in_range)
 
     def chase(self):
-        print("predator chasing")
+        # print("predator chasing")
         if self.target == None or not self.target.is_alive():
             self.set_state(Predator_State.SEARCHING)
             return
@@ -212,7 +212,7 @@ class PredatorAgent(TypedAgent):
 
         self.direction = target_pos - current_pos
         self.direction /= np.linalg.norm(self.direction)
-        print("direction normalize self.direction 2: ", self.direction)
+        # print("direction normalize self.direction 2: ", self.direction)
 
         new_pos = self.max_speed * self.direction + self.position
         dist_travelled = np.linalg.norm(current_pos - new_pos)
@@ -236,12 +236,12 @@ class PredatorAgent(TypedAgent):
             self.set_state(Predator_State.CHASING)
 
     def eat(self):
-        print("predator eating")
+        # print("predator eating")
         self.energy += self.target.get_energy()
         if self.energy < self.max_energy:
             self.energy = self.max_energy
         self.target.state = Prey_State.DEAD
-        print("taget ", self.target)
+        # print("taget ", self.target)
         if self.target.is_alive == True:
             self.target.die()
         self.target = None
@@ -306,7 +306,7 @@ class PredatorAgent(TypedAgent):
         else:
             d_hat = np.array([0, 0])
 
-        print("self.direction, d_hat: ", self.direction, d_hat)
+        # print("self.direction, d_hat: ", self.direction, d_hat)
         dot_product = (self.direction[0] * d_hat[0]) + \
             (self.direction[1] * d_hat[1])
         v_abs = np.sqrt(
@@ -354,7 +354,7 @@ class PredatorAgent(TypedAgent):
             # self.v_hat = np.array([self.pm, self.pm])
             self.direction = np.array([random.random(), random.random()])
             self.direction /= np.linalg.norm(self.direction)
-            print("direction normalize self.direction 3: ", self.direction)
+            # print("direction normalize self.direction 3: ", self.direction)
 
             new_position = self.max_speed * self.direction + current_position
         new_position_rounded = new_position

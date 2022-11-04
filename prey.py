@@ -188,17 +188,17 @@ class PreyAgent(TypedAgent):
 
     # STEP FUNCTION
     def step(self):
-        print("prey step function, state: ", self.state)
+        # print("prey step function, state: ", self.state)
         self.age = self.age + 1
         self.nrz = 0
         self.energy = self.energy - self.em
 
         if self.energy <= self.min_energy:
-            print("min energy ", self.energy)
+            # print("min energy ", self.energy)
             self.state = Prey_State.DEAD
 
         if self.age <= 0:
-            print("age ", self.max_age)
+            # print("age ", self.max_age)
             self.state = Prey_State.DEAD
 
         if self.state == Prey_State.DEAD:
@@ -231,7 +231,7 @@ class PreyAgent(TypedAgent):
         if self.detected_predator != False:
             self.state = Prey_State.FLEEING
             self.flee()
-            # self.new_move()
+            self.new_move()
 
         self.check_group()
         # elif neighbour.get_type() == "predator":
@@ -241,7 +241,7 @@ class PreyAgent(TypedAgent):
             self.new_move()
         elif self.state == Prey_State.FOODSCAN:
             self.food_target = self.foodscan()
-            print("found food target", self.food_target)
+            # print("found food target", self.food_target)
             if self.food_target == None:
                 self.new_move()
         elif self.state == Prey_State.MOVETOFOOD:  # braek out of movetofood if at food
@@ -249,10 +249,10 @@ class PreyAgent(TypedAgent):
                 self.state = Prey_State.EATING
                 self.current_action_time_remaining = self.te
             else:
-                print("trying to move to food")
+                # print("trying to move to food")
                 self.move_to_food(self.food_target)
         elif self.state == Prey_State.EATING:
-            print("am eating")
+            # print("am eating")
             if self.food_target != None:
                 self.energy += self.er
                 self.eat(self.food_target)
@@ -271,13 +271,13 @@ class PreyAgent(TypedAgent):
                 self.state = Prey_State.SCANNING
             else:
                 if self.food_target is not None:
-                    print("FOOD TARGET distance", self.distance(
-                        self.food_target.position))
-                    print("state is distance  ", self.distance(
-                        self.food_target.position), " > ", self.dr)
+                    # print("FOOD TARGET distance", self.distance(
+                    #     self.food_target.position))
+                    # print("state is distance  ", self.distance(
+                    #     self.food_target.position), " > ", self.dr)
                     if self.distance(self.food_target.position) <= self.dr:
-                        print("state is eating ",
-                              self.food_target.position, " < ", self.dr)
+                        # print("state is eating ",
+                        #       self.food_target.position, " < ", self.dr)
                         self.state = Prey_State.EATING
                         self.current_action_time_remaining = self.te
                     else:
@@ -349,7 +349,7 @@ class PreyAgent(TypedAgent):
             if self.aa < self.di:
                 self.di = self.aa
         new_position = self.search_space()
-        print("new position", new_position)
+        # print("new position", new_position)
         self.model.grid.move_agent(self, new_position)
         self.set_position(new_position)
 
@@ -357,7 +357,7 @@ class PreyAgent(TypedAgent):
 
     def new_move(self):
         # TODO how to get neighbours, but only of class prey, current idea isn't efficent
-        print("old position", self.position)
+        # print("old position", self.position)
         # Grouping params
         # get number of actual neighbors within zones
         d_hat = np.array([0, 0])
@@ -489,16 +489,13 @@ class PreyAgent(TypedAgent):
         # Get new position and make sure it is on the grid
         if (self.v_hat[0] + self.v_hat[1] != 0.0):
             new_position = self.dm * self.v_hat + self.position
-            print(" self.v_hat[0] + self.v_hat[1] != 0.0 ", self.v_hat )
         else:
             # self.v_hat = np.array([self.pm, self.pm])
-            print("self.pm", self.pm)
             self.v_hat = np.concatenate((self.pm, self.pm))
-            print("v_hat ", self.v_hat)
             new_position = self.dm * self.v_hat + self.position
-        print("v_hat is ", self.v_hat)
-        print("dm is ", self.dm)
-        print("new position is", new_position)
+        # print("v_hat is ", self.v_hat)
+        # print("dm is ", self.dm)
+        # print("new position is", new_position)
         # TODO Rounding is causing problems but not rounding causes issues in the get_neighbour calls
         new_position_rounded = new_position
         # Set new pos
@@ -507,9 +504,9 @@ class PreyAgent(TypedAgent):
             new_position_rounded = self.model.grid.torus_adj(
                 new_position_rounded)
         self.model.grid.move_agent(self, new_position_rounded)
-        print("old position : ", self.position)
-        print("new pos: ", self, new_position_rounded)
-        print("move dist ", self.dm)
+        # print("old position : ", self.position)
+        # print("new pos: ", self, new_position_rounded)
+        # print("move dist ", self.dm)
         self.position = (tuple(new_position_rounded))
         # Duration
         self.current_action_time_remaining = self.dm * self.tm
@@ -599,7 +596,7 @@ class PreyAgent(TypedAgent):
         # self.new_move()
 
     def eat(self, food_item):
-        print("Nom")
+        # print("Nom")
         # resource items that are eaten disappear immediately (no half eating possible)
         self.model.remove_agents_food.append(food_item)
         # remove the agent from the grid, immediately to prevent it being eaten twice
@@ -607,7 +604,7 @@ class PreyAgent(TypedAgent):
         #self.current_action_time_remaining = self.current_action_time_remaining - self.te
 
     def scan(self):
-        print("scanning")
+        # print("scanning")
         for neighbour in self.model.grid.get_neighbors(self.position, include_center=False,
                                                        radius=self.max_neighbour_awareness):
             if neighbour.get_type() == "predator":
@@ -631,7 +628,7 @@ class PreyAgent(TypedAgent):
         self.current_action_time_remaining = self.current_action_time_remaining - self.reaction_time
 
     def reproduce(self):
-        print("reproducing")
+        # print("reproducing")
         # Reproduction
         # neighbours = self.model.grid.get_neighbors(self.position, include_center=True)
         # n_children = int((len(neighbours)/2))
@@ -662,7 +659,7 @@ class PreyAgent(TypedAgent):
 
     def force_birth(self):
         n = 5
-        print("force birth ")
+        # print("force birth ")
         summed_energy_neighbours = 0
         for agent in self.model.grid.get_neighbors((int(setup.GRID_WIDTH/2), int(setup.GRID_HEIGHT/2)),
                                                    include_center=True,
@@ -684,9 +681,10 @@ class PreyAgent(TypedAgent):
         return self.state != Prey_State.DEAD
 
     def die(self):
+        super().die()
+        # print("DEAD")
         self.state = Prey_State.DEAD
         self.model.num_prey_agents -= 1
-        self.model.grid.remove_agent(self)
-        super().die()
-        print("DEAD")
+        # TODO this does nothing
+        self.model.prey
         return

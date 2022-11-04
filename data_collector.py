@@ -27,8 +27,8 @@ class DataCollector(DC):
 
 	def collect(self, model):
 		super().collect(model)
-		self.record_evolvable_params(model)
-	
+		self.record_global_overview(model)
+
 	def record_global_overview(self, model):
 		vigilance = 0
 		prey_agents = model.get_prey()
@@ -37,14 +37,17 @@ class DataCollector(DC):
 		predation = model.attack_distance
 		time = model.step_nr
 		group_sz_prey = len(prey_agents)
+		vigilance_avg = vigilance / max(group_sz_prey, 1)
 		data = {	"predation_risk" : predation,
 					"vigilance_total" : vigilance,
-					"vigilance_avg" : vigilance / group_sz_prey, 
+					"vigilance_avg" : vigilance_avg, 
 					"time"			: time,
 					"group_size_prey" : group_sz_prey
 				}
-		row = pd.DataFrame(data)
+		row = pd.DataFrame(data, index=[0])
+		
 		self.global_overview = pd.concat([self.global_overview, row])
+		
 
 	def get_global_overview(self):
 		return self.global_overview
